@@ -16,6 +16,12 @@ typedef struct _CONTIG {
 } CONTIG;
 
 
+typedef  struct _MATCH {
+    std::string query, subject;
+    unsigned int start, end;
+
+} MATCH;
+
 
 #endif //__RPKM_TYPE
 

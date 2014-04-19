@@ -116,6 +116,7 @@ void get_fasta_sequence_info(const std::string & fasta_file_name) {
         name = extract_sequence_name(name);
         std::cout << name << " : " << content.size() << std::endl;
     }
+    input.close();
  
 }
 
@@ -130,4 +131,29 @@ std::string extract_sequence_name(const std::string &name) {
 
      std::string sname(cstr);
      return sname;
+}
+
+
+
+void split(const string  &strn, std::vector<char *> &v, char *buf) {
+  strcpy(buf, strn.c_str());
+  char *s1 = buf;
+  v.push_back(s1);
+  while(*s1 != '\0') {
+     if(*s1 =='\t') { 
+       *s1 = '\0';
+       v.push_back(s1+1);
+     }
+     s1++;
+  }
+}
+
+bool matchString(const string &str, const string & stringtomatch, bool fromstart) {
+
+    unsigned int pos = str.find(stringtomatch);
+    if(fromstart &&  pos ==0 ) return true;
+
+    if( !fromstart && pos >= 0) return true;
+    return false;
+
 }

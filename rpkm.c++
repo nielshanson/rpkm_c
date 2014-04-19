@@ -19,6 +19,7 @@ int main( int argc, char **argv ){
     map<string, CONTIG> contigs_dictionary;
     unsigned int genome_length = create_contigs_dictionary(options.contigs_file,  contigs_dictionary);
     std::cout << " Total genome length " << genome_length << std::endl;
+   
     
  
 } 

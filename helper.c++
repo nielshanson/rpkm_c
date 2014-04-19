@@ -1,8 +1,34 @@
 #include "helper.h"
 using namespace std;
 
-void read_orf_names(string pathways_table, map<string, unsigned int> &orfnames) {
 
+
+void read_orf_names(string pathways_table_filename, map<string, unsigned int> &orfnames) {
+
+    char buf[1000000];
+    std::ifstream input(pathways_table_filename.c_str());
+    if(!input.good()){
+        std::cerr << "Error opening '"<<pathways_table_filename<<"'. Bailing out." << std::endl;
+        return ;
+    }   
+
+    string stringCOMMENT("PWY_NAME");
+    vector<char *> fields; 
+
+    std::string line;
+    while( std::getline( input, line ).good() ){
+       if( matchString(line, stringCOMMENT, true) ) continue;
+       fields.clear();
+       split(line, fields, buf); 
+       if( fields.size() <= 5) continue; 
+
+       for(vector<char *>::iterator it=fields.begin()+5; it!=fields.end() ; it++) {
+           orfnames[std::string(*it)];
+       }
+    }
+    std::cout << "num orfnames " << orfnames.size() << std::endl ;
+
+    input.close();
 
 }
 

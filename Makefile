@@ -5,8 +5,8 @@ CCFLAGS=
 
 
 PROG = rpkm
-OBJECTS= utilities.o rpkm.o helper.o fastareader.o
-SOURCES= utilities.c++ rpkm.c++ helper.c++ fastareader.c++
+SOURCES= utilities.c++ rpkm.c++ helper.c++ fastareader.c++ matchoutputparser.c++
+OBJECTS= $(SOURCES:.c++=.o)
 
 %.o: %.c++   $(SOURCES)
 	$(CC)  $< -c -o $@  

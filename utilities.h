@@ -4,6 +4,7 @@
 #include <fstream>
 #include <string>
 #include <map>
+#include <vector>
 
 using namespace std;
 
@@ -50,6 +51,10 @@ struct Options {
 
 	void Print();
 };
+
+void split(const std::string  &strn, std::vector<char *> &v, char *buf);
+
+bool matchString(const string &str, const string & stringtomatch, bool fromstart=false);
 
 void get_fasta_sequence_info(const std::string &fasta_file_name);
 
