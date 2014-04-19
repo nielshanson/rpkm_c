@@ -1,0 +1,17 @@
+#ifndef __FASTAREADER
+#define __FASTAREADER
+#include "utilities.h"
+
+
+class FastaReader {
+
+private:
+     string contigs_file;
+public:
+     FastaReader(const string & contigs_file);
+     void get_fasta_sequence_info(map<string, unsigned int> &contigs_dictionary) ;
+     std::string extract_sequence_name(const std::string &name);
+     string getContigsFileName();
+};
+
+#endif // __FASTAREADER
