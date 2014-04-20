@@ -21,7 +21,7 @@ struct Options {
     
     /* Flags and settings */
     bool multi_reads; // flag for detecting multiple mapping of reads
-    string map_format; // aligner type BWA or BLAST, two SAM files or one
+    string reads_map_file_format; // aligner type BWA or BLAST, two SAM files or one
     
     // Constructor with default settings 
 	Options(){
@@ -33,7 +33,7 @@ struct Options {
        output_file = "";
 
        multi_reads = false;
-       map_format = "blastout";  
+       reads_map_file_format = "blastout";  
 	};
     
     void print_usage( char *arg);
@@ -52,7 +52,9 @@ struct Options {
 	void Print();
 };
 
-void split(const std::string  &strn, std::vector<char *> &v, char *buf);
+void split(const std::string  &strn, std::vector<char *> &v, char *buf, char d='\t');
+std::string get_orf_name(std::string & strn, std::vector<char *> &v, char *buf);
+
 
 bool matchString(const string &str, const string & stringtomatch, bool fromstart=false);
 

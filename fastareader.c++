@@ -47,6 +47,7 @@ void FastaReader::get_fasta_sequence_info(map< string, unsigned int> &contigs_di
         //std::cout << name << " : " << content.size() << std::endl;
         contigs_dictionary[name] = content.size() ;
     }
+    input.close();
  
 }
 

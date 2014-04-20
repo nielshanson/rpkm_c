@@ -35,7 +35,7 @@ bool Options::SetOptions(int argc, char *argv[]) {
           if( (strncmp(argv[i+1], "blastout", strlen("blastout")) == 0 ) ||\
               (strncmp(argv[i+1], "sam-1", strlen("sam-1")) == 0) ||\
               (strncmp(argv[i+1], "sam-2", strlen("sam-2")) == 0) ) {   
-              this->map_format = argv[++i];
+              this->reads_map_file_format = argv[++i];
           }
           else {
                std::cout << "ERROR: Choices for -format option must of type blastout, sam-1 or sam-2" << std::endl;
@@ -77,7 +77,7 @@ void Options::print_options() {
        std::cout << "ORF file [GFF]          : "<< this->orf_file << std::endl; 
        std::cout << "Pathways table          : "<< this->pathways_table << std::endl; 
        std::cout << "Output file             : "<< this->output_file << std::endl; 
-       std::cout << "File Format             : "<< this->map_format << std::endl; 
+       std::cout << "File Format             : "<< this->reads_map_file_format << std::endl; 
        std::cout << "Multi reads             : "<< this->multi_reads << std::endl; 
 }
 
@@ -135,12 +135,13 @@ std::string extract_sequence_name(const std::string &name) {
 
 
 
-void split(const string  &strn, std::vector<char *> &v, char *buf) {
+void split(const string  &strn, std::vector<char *> &v, char *buf, char d) {
   strcpy(buf, strn.c_str());
   char *s1 = buf;
+  v.clear();
   v.push_back(s1);
   while(*s1 != '\0') {
-     if(*s1 =='\t') { 
+     if(*s1==d) { 
        *s1 = '\0';
        v.push_back(s1+1);
      }
@@ -148,6 +149,13 @@ void split(const string  &strn, std::vector<char *> &v, char *buf) {
   }
 }
 
+std::string get_orf_name(std::string  &strn, std::vector<char *> &v, char *buf) {
+    split(strn, v, buf, ';'); 
+    if(v.size() == 0)  return std::string("");
+    split(std::string(v[0]), v, buf, '=');
+    if(v.size() < 2)  return std::string("");
+    return std::string(v[1]);
+}
 bool matchString(const string &str, const string & stringtomatch, bool fromstart) {
 
     unsigned int pos = str.find(stringtomatch);
