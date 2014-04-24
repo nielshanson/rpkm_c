@@ -2,6 +2,7 @@
 using namespace std;
 
 
+#define _MAX 5000000
 
 void read_orf_names(string pathways_table_filename, map<string, float> &orfnames) {
 
@@ -59,7 +60,7 @@ unsigned int create_contigs_dictionary(std::string contigs_file,  std::map<std::
 
 
 unsigned int detect_multireads_blastoutput(const std::string &blastoutput_file, const std::string &format,\
-     map<std::string, unsigned int> &multireads, bool paired_reads) {
+     vector<MATCH> &all_reads, map<std::string, unsigned int> &multireads, bool paired_reads) {
 
     MatchOutputParser *parser = ParserFactory::createParser(blastoutput_file, format);
     if( parser ==0 ) {
@@ -67,10 +68,11 @@ unsigned int detect_multireads_blastoutput(const std::string &blastoutput_file, 
     }
 
     MATCH  match;
-
     map<std::string, unsigned int> _multireads;
     for(int i =0; ; i++ )  {
        if( !parser->nextline(match) )  break;
+       if( i > _MAX ) break;
+        all_reads.push_back(match);
        if(i%10000==0) {
            std::cout << "\n\033[F\033[J";
            std::cout << i ;
@@ -100,10 +102,9 @@ unsigned int detect_multireads_blastoutput(const std::string &blastoutput_file, 
 
 
 unsigned int process_blastoutput(const std::string & reads_map_file, std::map<string, CONTIG> &contigs_dictionary,\
-      const std::string &reads_map_file_format,  std::map<string, unsigned int> & multireads) {
+      const std::string &reads_map_file_format, std::vector<MATCH> &all_reads,   std::map<string, unsigned int> & multireads) {
 
     MATCH  match;
-    MatchOutputParser *parser = ParserFactory::createParser(reads_map_file, reads_map_file_format);
     std::map<string, bool> read_map;
     //unsigned int count=0;
     //unsigned int length = 0;
@@ -118,35 +119,41 @@ unsigned int process_blastoutput(const std::string & reads_map_file, std::map<st
     }
 */
     
+    int i =0;
+    for(vector<MATCH>::iterator it=all_reads.begin();  it!= all_reads.end(); it++ )  {
 
-    for(int i =0; ; i++ )  {
-       if( !parser->nextline(match) )  break;
+       if( i > _MAX ) break;
        if(i%10000==0) {
            std::cout << "\n\033[F\033[J";
            std::cout << i ;
        }
+       i++;
 
-       if( read_map.find(match.query)==  read_map.end() )
-          read_map[match.query] = true;
+       //std::cout << match.query << std::endl;
+       //if( read_map.find(match.query)== read_map.begin() ) {
+        // std::cout << match.query << std::endl;
+        read_map[it->query] = true;
+       //}
 
-       if( contigs_dictionary.find(match.subject)==contigs_dictionary.end() ) {
-          std::cout << " Missing contig " << match.subject << std::endl;
+       if( contigs_dictionary.find(it->subject)==contigs_dictionary.end() ) {
+          
+          std::cout << " Missing contig " << it->subject << std::endl;
           std::cerr << "ERROR : Could not find the matched contig in the contig file " << std::endl;
           exit(1);
        }
 
-       read_multiplicity =  (multireads.find(match.query) == multireads.end()) ? 1 : multireads[match.query];
+       read_multiplicity =  (multireads.find(it->query) == multireads.end()) ? 1 : multireads[it->query];
 
-       if(  match.start < match.end ) {
-           triplet.start = match.start;
-           triplet.end = match.end;
+       if(  it->start < it->end ) {
+           triplet.start = it->start;
+           triplet.end = it->end;
        }
        else {
-           triplet.start = match.end;
-           triplet.end = match.start;
+           triplet.start = it->end;
+           triplet.end = it->start;
        }
        triplet.multi = read_multiplicity;
-       contigs_dictionary[match.subject].M.push_back(triplet);
+       contigs_dictionary[it->subject].M.push_back(triplet);
     }
     return read_map.size();
 }

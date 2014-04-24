@@ -25,6 +25,8 @@ int main( int argc, char **argv ){
     unsigned int genome_length = create_contigs_dictionary(options.contigs_file,  contigs_dictionary);
    // std::cout << " Total genome length " << genome_length << std::endl;
    
+    vector<MATCH> all_reads;
+    all_reads.reserve(1000000);
     unsigned int num_mappable_reads =0;
     // creating the read multiplicity counts if there is a single end read file 
     unsigned int _se_num_mappable_reads =0;
@@ -32,10 +34,13 @@ int main( int argc, char **argv ){
     map<std::string, unsigned int> multireads;
     if( options.se_reads_map_file.size() != 0 ) {
         multireads.clear();
+
+        all_reads.clear();
         std::cout << "\n\n" << "Searching for multireads from single read file " << options.se_reads_map_file << std::endl;
-        _se_num_multireads = detect_multireads_blastoutput(options.se_reads_map_file, options.reads_map_file_format, multireads);
+        _se_num_multireads = detect_multireads_blastoutput(options.se_reads_map_file, options.reads_map_file_format, all_reads,  multireads);
+
         if(!options.multi_reads) multireads.clear();
-        _se_num_mappable_reads = process_blastoutput(options.se_reads_map_file, contigs_dictionary, options.reads_map_file_format, multireads);
+        _se_num_mappable_reads = process_blastoutput(options.se_reads_map_file, contigs_dictionary, options.reads_map_file_format, all_reads, multireads);
         num_mappable_reads +=  _se_num_mappable_reads;
     }
     
@@ -44,10 +49,13 @@ int main( int argc, char **argv ){
     unsigned int _pe_num_multireads =0;
     if( options.pe_reads_map_file.size() != 0 ) {
         multireads.clear();
+        all_reads.clear();
         std::cout << "\n\n" << "Searching for multireads from paired end reads file " << options.pe_reads_map_file << std::endl;
+        _pe_num_multireads = detect_multireads_blastoutput(options.pe_reads_map_file, options.reads_map_file_format, all_reads,  multireads, true);
         if(!options.multi_reads) multireads.clear();
-        _pe_num_multireads = detect_multireads_blastoutput(options.pe_reads_map_file, options.reads_map_file_format, multireads, true);
+        _pe_num_mappable_reads = process_blastoutput(options.pe_reads_map_file, contigs_dictionary, options.reads_map_file_format, all_reads,  multireads);
         num_mappable_reads +=  _pe_num_mappable_reads;
+         
     }
     
     std::cout << "\n\nSorting  the read matches .....";
@@ -100,6 +108,7 @@ int main( int argc, char **argv ){
 
     char buf[100000];
 
+    std::cout << std::endl;
     sprintf(buf, "Number of Contigs               : %d ", (int)contigs_dictionary.size() );
     std::cout << buf<< std::endl;
     sprintf(buf, "Number of ORFs in sample        : %d ",_num_orfs);
@@ -123,10 +132,10 @@ int main( int argc, char **argv ){
     sprintf(buf,"Number of pe multireads         : %d ",_pe_num_multireads);
     std::cout << buf  << std::endl;
     _se_num_mappable_reads = _se_num_mappable_reads > 0 ? _se_num_mappable_reads : 1; 
-    sprintf(buf,"Percentage se multireads        : %5.2f%% ",(float)_se_num_multireads*100/(float)_se_num_mappable_reads);
+    sprintf(buf,"Percentage se multireads        : %-5.2f%% ",(float)_se_num_multireads*100/(float)_se_num_mappable_reads);
     std::cout << buf  << std::endl;
     _pe_num_mappable_reads = _pe_num_mappable_reads > 0 ? _pe_num_mappable_reads : 1; 
-    sprintf(buf,"Percentage pe multireads        : %5.2f%% ",(float)_pe_num_multireads*100/(float)_pe_num_mappable_reads);
+    sprintf(buf,"Percentage pe multireads        : %-5.2f%% ",(float)_pe_num_multireads*100/(float)_pe_num_mappable_reads);
     std::cout << buf  << std::endl;
     sprintf(buf,"Avg rpkm across ORFs in sample  : %.2f ",_avg_rpkm_sample);
     std::cout << buf  << std::endl;

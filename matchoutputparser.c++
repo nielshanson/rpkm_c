@@ -16,7 +16,7 @@ SamFileParser::SamFileParser(const std::string &filename, const std::string &for
      this->input.open(filename.c_str(), std::ifstream::in);
 
      if(!this->input.good()){
-         std::cerr << "Error opening '"<<filename<<"'. Bailing out." << std::endl;
+         std::cerr << "Error opening '"<< filename <<"'. Bailing out." << std::endl;
          return ;
      }  
 
@@ -36,11 +36,12 @@ bool SamFileParser::nextline(MATCH &match) {
          if(matchString(line, skipPattern, true) ) continue;
 
          fields.clear();
-         split(line, fields, this->buf);
+         split(line, fields, this->buf,'\t');
 
          if(fields.size() < 9)  continue;
 
          if( matchString(std::string(fields[2]), skipStar, true)) continue;
+
          _success = true;
          break;
      }  

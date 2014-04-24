@@ -21,5 +21,9 @@ $(PROG): $(OBJECTS) $(HEADERS)
 	$(CC) $(CCFLAGS) $(OBJECTS) -o $(PROG)
 
 
-test:
+test1:
+	$(PROG) -c data/IIYH_4096373_combined_unique.fasta --r1 data/IIYH-se.sam  -O data/4096373_combined_unique.unannot.gff -p data/4096373.combined_unique.basepathways.txt -f sam-2 -o data/IIYH_out.testtest
+test2:
+	$(PROG) -c data/IIYH_4096373_combined_unique.fasta  --r2 data/IIYH-pe.sam -O data/4096373_combined_unique.unannot.gff -p data/4096373.combined_unique.basepathways.txt -f sam-2 -o data/IIYH_out.testtest
+test3:
 	$(PROG) -c data/IIYH_4096373_combined_unique.fasta --r1 data/IIYH-se.sam --r2 data/IIYH-pe.sam -O data/4096373_combined_unique.unannot.gff -p data/4096373.combined_unique.basepathways.txt -f sam-2 -o data/IIYH_out.testtest
