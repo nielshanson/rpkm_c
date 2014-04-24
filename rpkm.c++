@@ -75,10 +75,13 @@ int main( int argc, char **argv ){
        substring_coverage(contigs_dictionary, it->first, 1, it->second.L, coverage);
        total_covered_length += coverage.coverage*contigs_dictionary[it->first].L;
        total_contig_length += contigs_dictionary[it->first].L;
-    //   std::cout << coverage.coverage << "  " << coverage.numreads << "  " << coverage.substring_length << "   " << coverage.uncovered_length << std::endl;
+       //std::cout << coverage.coverage << "  " << coverage.numreads << "  " << coverage.substring_length << "   " << coverage.uncovered_length << std::endl;
     }
     
-    unsigned int _num_orfs = ORFWise_coverage(contigs_dictionary, options.orf_file, orfnames, genome_length, num_mappable_reads);
+    map<string, float> _all_orfnames;
+    unsigned int orf_length = 0;
+    unsigned int _num_orfs = ORFWise_coverage(contigs_dictionary, options.orf_file, _all_orfnames, genome_length,  orf_length, num_mappable_reads);
+    std::cout << "done computing orfwise coverage " << std::endl;
 
 /*
     for(std::map<string, float>::iterator it = orfnames.begin(); it != orfnames.end(); it++) {
@@ -86,22 +89,31 @@ int main( int argc, char **argv ){
     }
 
 */
-    add_RPKM_value_to_pathway_table(options.pathways_table, options.output_file, orfnames);
+    if( options.pathways_table.size() > 0 )
+        add_RPKM_value_to_pathway_table(options.pathways_table, options.output_file, orfnames);
     
 
    // average rpkm
-    float _rpkm = 0 ;
+    float _rpkm_sample = 0 ;
     float _count = 0 ;
-
-    for(map<string, float>::iterator it= orfnames.begin(); it != orfnames.end(); it++)  {
-        _rpkm += it->second;
+    for(map<string, float>::iterator it= _all_orfnames.begin(); it != _all_orfnames.end(); it++)  {
+        _rpkm_sample += it->second;
         _count += 1;
     }
-
     _count = (_count > 0) ? _count : 1;
+    float _avg_rpkm_sample  = _rpkm_sample/_count;
 
-    float _avg_rpkm_sample  = _rpkm/_num_orfs;
-    float _avg_rpkm_table = _rpkm/_count;
+
+    // rpkm average for the table
+    float _rpkm_table = 0 ;
+    _count = 0 ;
+    for(map<string, float>::iterator it= orfnames.begin(); it != orfnames.end(); it++)  {
+        _rpkm_table +=  _all_orfnames[it->first];
+        _count += 1;
+    }
+    _count = (_count > 0) ? _count : 1;
+    float _avg_rpkm_table = _rpkm_table/_count;
+
     _count = (float)orfnames.size();
 
     unsigned int _num_single_reads  = num_mappable_reads - _se_num_multireads - _pe_num_multireads;
@@ -115,9 +127,11 @@ int main( int argc, char **argv ){
     std::cout << buf  << std::endl;
     sprintf(buf, "Number of ORFs in pathway table : %d ",(int)_count); 
     std::cout << buf  << std::endl;
-    sprintf(buf,"Perentage contig coverage       : %5.2f%%", (float)total_covered_length/(float)total_contig_length);
+    sprintf(buf,"Perentage contig coverage       : %-5.2f%%", (float)total_covered_length/(float)total_contig_length);
     std::cout << buf  << std::endl;
     sprintf(buf,"Total Genome Length             : %d ",genome_length);
+    std::cout << buf  << std::endl;
+    sprintf(buf,"Total ORF Length                : %d ",orf_length);
     std::cout << buf  << std::endl;
     sprintf(buf,"Total num of mappable reads     : %d ",num_mappable_reads);
     std::cout << buf  << std::endl;

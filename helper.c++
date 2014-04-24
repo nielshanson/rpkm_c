@@ -2,7 +2,7 @@
 using namespace std;
 
 
-#define _MAX 5000000
+#define _MAX 500000000
 
 void read_orf_names(string pathways_table_filename, map<string, float> &orfnames) {
 
@@ -24,7 +24,7 @@ void read_orf_names(string pathways_table_filename, map<string, float> &orfnames
        if( fields.size() <= 5) continue; 
 
        for(vector<char *>::iterator it=fields.begin()+5; it!=fields.end() ; it++) {
-           orfnames[std::string(*it)];
+           orfnames[std::string(*it)] = 0;
        }
     }
 
@@ -196,7 +196,8 @@ void substring_coverage(std::map<string, CONTIG> &contigs_dictionary, const std:
 
 
 unsigned int ORFWise_coverage( map<string, CONTIG> &contigs_dictionary, const string &orf_file,\
-                               map<string, float> &orfnames, unsigned int genome_length, unsigned int num_mappable_reads) {
+                               map<string, float> &orfnames, unsigned int genome_length,\
+                               unsigned int &orf_length,  unsigned int num_mappable_reads) {
 
     MATCH  match;
     COVERAGE coverage;
@@ -220,9 +221,10 @@ unsigned int ORFWise_coverage( map<string, CONTIG> &contigs_dictionary, const st
 
        orf_dictionary[match.query].push_back(match);
        _num_orfs += 1;
-       if( orfnames.find(match.subject) != orfnames.end() ) {
+     //  if( orfnames.find(match.subject) != orfnames.end() ) {
            try {
                substring_coverage(contigs_dictionary, match.query, match.start, match.end, coverage); 
+               orf_length += match.end - match.start;
             //   std::cout << coverage.numreads << " " << coverage.substring_length << "  " << num_mappable_reads << std::endl;
            // std::cout << match.query << " " << match.subject << "  " << match.start << " " << match.end << std::endl;
             //std::cout << coverage.coverage << "  " << coverage.numreads << "  " << coverage.substring_length << "   " << coverage.uncovered_length << std::endl;
@@ -231,7 +233,7 @@ unsigned int ORFWise_coverage( map<string, CONTIG> &contigs_dictionary, const st
            catch(...) {
                orfnames[match.subject] = 0;
            }
-       }
+      // }
 
        //std::cout << match.query << " " << match.subject << "  " << match.start << " " << match.end << std::endl;
 
