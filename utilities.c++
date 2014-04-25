@@ -158,10 +158,35 @@ std::string get_orf_name(std::string  &strn, std::vector<char *> &v, char *buf) 
 }
 bool matchString(const string &str, const string & stringtomatch, bool fromstart) {
 
-    unsigned int pos = str.find(stringtomatch);
+    unsigned long pos = str.find(stringtomatch);
     if(fromstart &&  pos ==0 ) return true;
 
     if( !fromstart && pos >= 0) return true;
     return false;
 
+}
+
+string to_string(unsigned long i) {
+    char  c[100];
+    char *p = c;
+    int j = 0;
+    char z = '0';
+
+    while( i > 0 ) {
+       if(i< 10) {
+         *p='0' + i;
+          p++;
+          break;
+       } 
+       else {
+           j = i%10;
+           i = (i - j)/10;
+           *p =  z + j;
+           *p++;
+        }
+    }
+    *p = '\0';
+    p--;
+
+    return string(c);
 }

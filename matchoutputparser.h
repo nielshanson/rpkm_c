@@ -30,6 +30,8 @@ public:
 
 //subclass of the MathOutputParser
 class SamFileParser: virtual public MatchOutputParser {
+private:
+      unsigned long count;
 public:
       SamFileParser(const std::string &filename, const std::string &format);
       virtual bool nextline(MATCH &match);

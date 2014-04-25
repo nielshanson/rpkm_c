@@ -19,6 +19,7 @@ SamFileParser::SamFileParser(const std::string &filename, const std::string &for
          std::cerr << "Error opening '"<< filename <<"'. Bailing out." << std::endl;
          return ;
      }  
+     this->count = 0;
 
 }
 
@@ -47,7 +48,8 @@ bool SamFileParser::nextline(MATCH &match) {
      }  
     
      if( _success )  {  
-        match.query = std::string(fields[0]); 
+        //match.query = to_string(this->count++); 
+        match.query =  fields[0]; 
         match.subject = std::string(fields[2]);
         match.start = atoi(fields[3]);
         match.end =  match.start +  std::string(fields[9]).size();

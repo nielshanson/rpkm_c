@@ -62,5 +62,7 @@ void get_fasta_sequence_info(const std::string &fasta_file_name);
 
 std::string extract_sequence_name(const std::string &name);
 
+string to_string(unsigned long i);
+
 #endif //_UTILITIES
 

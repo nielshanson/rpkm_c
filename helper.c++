@@ -2,7 +2,8 @@
 using namespace std;
 
 
-#define _MAX 500000000
+//#define _MAX 100000000
+#define _MAX 1000000
 
 void read_orf_names(string pathways_table_filename, map<string, float> &orfnames) {
 
@@ -33,14 +34,14 @@ void read_orf_names(string pathways_table_filename, map<string, float> &orfnames
 }
 
 
-unsigned int create_contigs_dictionary(std::string contigs_file,  std::map<std::string, CONTIG> &contigs_dictionary) {
+unsigned long create_contigs_dictionary(std::string contigs_file,  std::map<std::string, CONTIG> &contigs_dictionary) {
     
      FastaReader fastareader(contigs_file);
-     map<string, unsigned int> contig_lengths;
-     map<string, unsigned int>::iterator  it_contig_lens;
+     map<string, unsigned long> contig_lengths;
+     map<string, unsigned long>::iterator  it_contig_lens;
      
      fastareader.get_fasta_sequence_info(contig_lengths);
-     unsigned int genome_length = 0;
+     unsigned long genome_length = 0;
      CONTIG contig;
      for(it_contig_lens = contig_lengths.begin(); it_contig_lens != contig_lengths.end(); it_contig_lens++ ) {
        // std::cout << it_contig_lens->first <<  "   " << it_contig_lens->second << std::endl;
@@ -59,8 +60,8 @@ unsigned int create_contigs_dictionary(std::string contigs_file,  std::map<std::
 }
 
 
-unsigned int detect_multireads_blastoutput(const std::string &blastoutput_file, const std::string &format,\
-     vector<MATCH> &all_reads, map<std::string, unsigned int> &multireads, bool paired_reads) {
+unsigned long detect_multireads_blastoutput(const std::string &blastoutput_file, const std::string &format,\
+     vector<MATCH> &all_reads, map<std::string, unsigned long> &multireads, bool paired_reads) {
 
     MatchOutputParser *parser = ParserFactory::createParser(blastoutput_file, format);
     if( parser ==0 ) {
@@ -68,25 +69,24 @@ unsigned int detect_multireads_blastoutput(const std::string &blastoutput_file, 
     }
 
     MATCH  match;
-    map<std::string, unsigned int> _multireads;
+    map<std::string, unsigned long> _multireads;
+    std::cout << std::endl << "Number of reads processed : " ;
     for(int i =0; ; i++ )  {
        if( !parser->nextline(match) )  break;
-       if( i > _MAX ) break;
+       if( i >= _MAX ) break;
         all_reads.push_back(match);
        if(i%10000==0) {
            std::cout << "\n\033[F\033[J";
            std::cout << i ;
        }
        //std::cout << match.query << "   " << match.subject <<  " "  << match.start << " " << match.end << std::endl;
-       if( _multireads.find(match.query)==  _multireads.end() )
-          _multireads[match.query] = 0;
-
+       if( _multireads.find(match.query)==_multireads.end() ) _multireads[match.query] = 0;
        _multireads[match.query] += 1;
     }
 
     // now store the multireads into the multireads map variable
-    unsigned int count;
-    for( map<std::string, unsigned int>::iterator it = _multireads.begin(); it != _multireads.end(); it++) {
+    unsigned long count;
+    for( map<std::string, unsigned long>::iterator it = _multireads.begin(); it != _multireads.end(); it++) {
        if( !paired_reads &&  it->second > 1)  
           multireads[it->first] = it->second;
 
@@ -95,20 +95,20 @@ unsigned int detect_multireads_blastoutput(const std::string &blastoutput_file, 
           multireads[it->first] = count + (it->second%2);
        }
     }
-    
+    std::cout << std::endl << "Number of multireads       : " << multireads.size() << std::endl; 
     delete parser;
     return multireads.size();
 }
 
 
-unsigned int process_blastoutput(const std::string & reads_map_file, std::map<string, CONTIG> &contigs_dictionary,\
-      const std::string &reads_map_file_format, std::vector<MATCH> &all_reads,   std::map<string, unsigned int> & multireads) {
+unsigned long process_blastoutput(const std::string & reads_map_file, std::map<string, CONTIG> &contigs_dictionary,\
+      const std::string &reads_map_file_format, std::vector<MATCH> &all_reads,   std::map<string, unsigned long> & multireads) {
 
     MATCH  match;
     std::map<string, bool> read_map;
-    //unsigned int count=0;
-    //unsigned int length = 0;
-    unsigned int read_multiplicity ;
+    //unsigned long count=0;
+    //unsigned long length = 0;
+    unsigned long read_multiplicity ;
 
  //   std::map<string, TRIPLETS> temp_contig_dictionary;
     TRIPLETS triplets;
@@ -120,9 +120,11 @@ unsigned int process_blastoutput(const std::string & reads_map_file, std::map<st
 */
     
     int i =0;
+    std::cout << "Number of hits processed : " ;
     for(vector<MATCH>::iterator it=all_reads.begin();  it!= all_reads.end(); it++ )  {
 
-       if( i > _MAX ) break;
+       if( i >=_MAX ) break;
+
        if(i%10000==0) {
            std::cout << "\n\033[F\033[J";
            std::cout << i ;
@@ -132,11 +134,10 @@ unsigned int process_blastoutput(const std::string & reads_map_file, std::map<st
        //std::cout << match.query << std::endl;
        //if( read_map.find(match.query)== read_map.begin() ) {
         // std::cout << match.query << std::endl;
-        read_map[it->query] = true;
+       read_map[it->query] = true;
        //}
 
        if( contigs_dictionary.find(it->subject)==contigs_dictionary.end() ) {
-          
           std::cout << " Missing contig " << it->subject << std::endl;
           std::cerr << "ERROR : Could not find the matched contig in the contig file " << std::endl;
           exit(1);
@@ -155,12 +156,15 @@ unsigned int process_blastoutput(const std::string & reads_map_file, std::map<st
        triplet.multi = read_multiplicity;
        contigs_dictionary[it->subject].M.push_back(triplet);
     }
+    std::cout << i << std::endl;
+    std::cout << "Number of mappable reads : " << read_map.size() << std::endl;
+    
     return read_map.size();
 }
 
 
 void substring_coverage(std::map<string, CONTIG> &contigs_dictionary, const std::string &contig,\
-                          unsigned int start, unsigned int end, COVERAGE &coverage) {
+                          unsigned long start, unsigned long end, COVERAGE &coverage) {
 
 
       if( contigs_dictionary.find(contig) == contigs_dictionary.end()   || contigs_dictionary[contig].L==0 ) {
@@ -172,11 +176,11 @@ void substring_coverage(std::map<string, CONTIG> &contigs_dictionary, const std:
 
       float numreads =0;
       float uncovered_length = 0;
-      unsigned int p_end = start;
+      unsigned long p_end = start;
       float _coverage = 0;
       
      for(std::vector<TRIPLET>::iterator it = contigs_dictionary[contig].M.begin(); it != contigs_dictionary[contig].M.end(); it++) {
-         uncovered_length  +=  ( p_end > it->start  || it->start > end) ? 0 : it->end - p_end;
+         uncovered_length  +=  ( p_end > it->start  || it->start > end) ? 0 : it->start - p_end;
          if( it->end > p_end ) p_end = it->end;  //make sure the read start and end are not going beyoing the contig
           
          if( (start <= it->start && it->start <= end) ||  (start <= it->end && it->end <= end)  )
@@ -184,7 +188,7 @@ void substring_coverage(std::map<string, CONTIG> &contigs_dictionary, const std:
      }
      uncovered_length += (p_end > end ) ? 0 : (end - p_end);
 
-     unsigned int substring_length = end - start;
+     unsigned long substring_length = end - start;
      if( substring_length > 0 ) 
         _coverage = ((float)(substring_length - uncovered_length )/(float)substring_length)*100;
 
@@ -195,9 +199,9 @@ void substring_coverage(std::map<string, CONTIG> &contigs_dictionary, const std:
 }
 
 
-unsigned int ORFWise_coverage( map<string, CONTIG> &contigs_dictionary, const string &orf_file,\
-                               map<string, float> &orfnames, unsigned int genome_length,\
-                               unsigned int &orf_length,  unsigned int num_mappable_reads) {
+unsigned long ORFWise_coverage( map<string, CONTIG> &contigs_dictionary, const string &orf_file,\
+                               map<string, float> &orfnames, unsigned long genome_length,\
+                               unsigned long &orf_length,  unsigned long num_mappable_reads) {
 
     MATCH  match;
     COVERAGE coverage;
@@ -205,7 +209,7 @@ unsigned int ORFWise_coverage( map<string, CONTIG> &contigs_dictionary, const st
 
     std::map<string, vector<MATCH> > orf_dictionary;
 
-    unsigned int _num_orfs=0;
+    unsigned long _num_orfs=0;
 
     vector<MATCH> match_vector;
 
@@ -225,12 +229,11 @@ unsigned int ORFWise_coverage( map<string, CONTIG> &contigs_dictionary, const st
            try {
                substring_coverage(contigs_dictionary, match.query, match.start, match.end, coverage); 
                orf_length += match.end - match.start;
-            //   std::cout << coverage.numreads << " " << coverage.substring_length << "  " << num_mappable_reads << std::endl;
-           // std::cout << match.query << " " << match.subject << "  " << match.start << " " << match.end << std::endl;
-            //std::cout << coverage.coverage << "  " << coverage.numreads << "  " << coverage.substring_length << "   " << coverage.uncovered_length << std::endl;
-               orfnames[match.subject] = 1E9*coverage.numreads/(coverage.substring_length*num_mappable_reads);
+         //   std::cout << coverage.coverage << "  " << coverage.numreads << "  " << coverage.substring_length << "   " << coverage.uncovered_length << std::endl;
+               orfnames[match.subject] = (1E9/static_cast<float>(num_mappable_reads))*(static_cast<float>(coverage.numreads)/static_cast<float>(coverage.substring_length));
            }
            catch(...) {
+               std::cout << "error\n";
                orfnames[match.subject] = 0;
            }
       // }

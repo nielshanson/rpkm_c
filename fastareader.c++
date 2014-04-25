@@ -13,7 +13,7 @@ string FastaReader::getContigsFileName() {
     return this->contigs_file;
 }
 
-void FastaReader::get_fasta_sequence_info(map< string, unsigned int> &contigs_dictionary) {
+void FastaReader::get_fasta_sequence_info(map< string, unsigned long> &contigs_dictionary) {
 
     std::ifstream input(this->contigs_file.c_str());
     if(!input.good()){
