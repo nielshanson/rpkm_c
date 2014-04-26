@@ -2,8 +2,7 @@
 using namespace std;
 
 
-//#define _MAX 100000000
-#define _MAX 1000000
+#define _MAX 100000000
 
 void read_orf_names(string pathways_table_filename, map<string, float> &orfnames) {
 

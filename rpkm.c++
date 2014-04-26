@@ -91,7 +91,7 @@ int main( int argc, char **argv ){
 
 */
     if( options.pathways_table.size() > 0 )
-        add_RPKM_value_to_pathway_table(options.pathways_table, options.output_file, orfnames);
+        add_RPKM_value_to_pathway_table(options.pathways_table, options.output_file, _all_orfnames);
     
 
    // average rpkm
