@@ -13,7 +13,7 @@ void read_orf_names(std::string pathways_table, std::map<string, float> &orfname
 unsigned long create_contigs_dictionary(std::string contigs_file,  std::map<std::string, CONTIG> &contigs_dictionary);
 
 unsigned long detect_multireads_blastoutput(const std::string &blastoutput_file, const std::string &format,\
-      vector<MATCH> &all_reads, map<std::string, unsigned long> &multireads,  bool paired_reads=false);
+      vector<MATCH> &all_reads, map<std::string, unsigned long> &multireads, unsigned long *_num_unmapped_reads,  bool paired_reads=false);
 
 unsigned long process_blastoutput(const std::string & reads_map_file, std::map<string, CONTIG> &contigs_dictionary,\
      const std::string &reads_map_file_format, vector<MATCH> &all_reads, map<string, unsigned long> & multireads);

@@ -2,7 +2,7 @@
 using namespace std;
 
 
-#define _MAX 100000000
+#define _MAX 1000000000
 
 void read_orf_names(string pathways_table_filename, map<string, float> &orfnames) {
 
@@ -60,7 +60,7 @@ unsigned long create_contigs_dictionary(std::string contigs_file,  std::map<std:
 
 
 unsigned long detect_multireads_blastoutput(const std::string &blastoutput_file, const std::string &format,\
-     vector<MATCH> &all_reads, map<std::string, unsigned long> &multireads, bool paired_reads) {
+     vector<MATCH> &all_reads, map<std::string, unsigned long> &multireads, unsigned long *_num_unmapped_reads,  bool paired_reads) {
 
     MatchOutputParser *parser = ParserFactory::createParser(blastoutput_file, format);
     if( parser ==0 ) {
@@ -70,7 +70,23 @@ unsigned long detect_multireads_blastoutput(const std::string &blastoutput_file,
     MATCH  match;
     map<std::string, unsigned long> _multireads;
     std::cout << std::endl << "Number of reads processed : " ;
-    for(int i =0; ; i++ )  {
+/*
+    int n =0;
+    for(; ; n++ )  {
+       if( !parser->nextline(match) )  break;
+       if( n >= _MAX ) break;
+        all_reads.push_back(match);
+       if(n%10000==0) {
+           std::cout << "\n\033[F\033[J";
+           std::cout << n ;
+       }
+       //std::cout << match.query << "   " << match.subject <<  " "  << match.start << " " << match.end << std::endl;
+       if( _multireads.find(match.query)==_multireads.end() ) _multireads[match.query] = 0;
+       _multireads[match.query] += 1;
+    }
+*/
+    int i ;
+    for( i =0; ; i++ )  {
        if( !parser->nextline(match) )  break;
        if( i >= _MAX ) break;
         all_reads.push_back(match);
@@ -82,6 +98,8 @@ unsigned long detect_multireads_blastoutput(const std::string &blastoutput_file,
        if( _multireads.find(match.query)==_multireads.end() ) _multireads[match.query] = 0;
        _multireads[match.query] += 1;
     }
+
+//    all_sequence_reads += n;
 
     // now store the multireads into the multireads map variable
     unsigned long count;
@@ -95,6 +113,9 @@ unsigned long detect_multireads_blastoutput(const std::string &blastoutput_file,
        }
     }
     std::cout << std::endl << "Number of multireads       : " << multireads.size() << std::endl; 
+    
+
+    *_num_unmapped_reads= parser->get_Num_Unmapped_Reads() ;
     delete parser;
     return multireads.size();
 }

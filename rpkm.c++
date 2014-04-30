@@ -24,40 +24,46 @@ int main( int argc, char **argv ){
     map<string, CONTIG> contigs_dictionary;
     unsigned long genome_length = create_contigs_dictionary(options.contigs_file,  contigs_dictionary);
    // std::cout << " Total genome length " << genome_length << std::endl;
-   
+ 
     vector<MATCH> all_reads;
     all_reads.reserve(1000000);
     unsigned long num_mappable_reads =0;
     // creating the read multiplicity counts if there is a single end read file 
     unsigned long _se_num_mappable_reads =0;
+    unsigned long _se_num_unmapped_reads =0;
     unsigned long _se_num_multireads =0;
     map<std::string, unsigned long> multireads;
     if( options.se_reads_map_file.size() != 0 ) {
         multireads.clear();
         all_reads.clear();
         std::cout << "\n\n" << "Searching for multireads from single read file " << options.se_reads_map_file << std::endl;
-        _se_num_multireads = detect_multireads_blastoutput(options.se_reads_map_file, options.reads_map_file_format, all_reads,  multireads);
+        _se_num_multireads = detect_multireads_blastoutput(options.se_reads_map_file, options.reads_map_file_format, all_reads, multireads,  &_se_num_unmapped_reads);
 //        std::cout << "Number of mappable reads " << all_reads.size() << std::endl;
+
         if(!options.multi_reads) multireads.clear();
-        _se_num_mappable_reads = process_blastoutput(options.se_reads_map_file, contigs_dictionary, options.reads_map_file_format, all_reads, multireads);
+        _se_num_mappable_reads = all_reads.size();
+        process_blastoutput(options.se_reads_map_file, contigs_dictionary, options.reads_map_file_format, all_reads, multireads);
 //        std::cout << "number of mappable readse se " << _se_num_mappable_reads << std::endl;
         num_mappable_reads +=  _se_num_mappable_reads;
     }
-    
+   
+ 
     // creating the read multiplicity counts if there is a paired ends read file 
     unsigned long _pe_num_mappable_reads =0;
+    unsigned long _pe_num_unmapped_reads =0;
     unsigned long _pe_num_multireads =0;
     if( options.pe_reads_map_file.size() != 0 ) {
         multireads.clear();
         all_reads.clear();
         std::cout << "\n\n" << "Searching for multireads from paired end reads file " << options.pe_reads_map_file << std::endl;
-        _pe_num_multireads = detect_multireads_blastoutput(options.pe_reads_map_file, options.reads_map_file_format, all_reads,  multireads, true);
+        _pe_num_multireads = detect_multireads_blastoutput(options.pe_reads_map_file, options.reads_map_file_format, all_reads,  multireads,  &_pe_num_unmapped_reads, true);
         if(!options.multi_reads) multireads.clear();
-        _pe_num_mappable_reads = process_blastoutput(options.pe_reads_map_file, contigs_dictionary, options.reads_map_file_format, all_reads,  multireads);
+        _pe_num_mappable_reads = all_reads.size();
+        process_blastoutput(options.pe_reads_map_file, contigs_dictionary, options.reads_map_file_format, all_reads,  multireads);
         num_mappable_reads +=  _pe_num_mappable_reads;
-         
     }
     
+
     std::cout << "\n\nSorting  the read matches .....";
     for(map<string, CONTIG>::iterator it = contigs_dictionary.begin(); it != contigs_dictionary.end(); it++) {
        std::sort(it->second.M.begin(), it->second.M.end(), compare_triplets);
@@ -140,9 +146,19 @@ int main( int argc, char **argv ){
     std::cout << buf  << std::endl;
     sprintf(buf,"Total num of mappable reads     : %ld ",num_mappable_reads);
     std::cout << buf  << std::endl;
+    sprintf(buf,"Total num of unmappable reads   : %ld ",_se_num_unmapped_reads + _pe_num_unmapped_reads) ;
+    std::cout << buf  << std::endl;
+    sprintf(buf,"Number of total reads           : %ld ",num_mappable_reads + _se_num_unmapped_reads + _pe_num_unmapped_reads) ;
+    std::cout << buf  << std::endl;
+    sprintf(buf,"Percentage of mapped reads      : %-5.2f ",100*(num_mappable_reads/(double)(num_mappable_reads + _se_num_unmapped_reads + _pe_num_unmapped_reads))) ;
+    std::cout << buf  << std::endl;
     sprintf(buf,"Total num of se mappable reads  : %ld ",_se_num_mappable_reads);
     std::cout << buf  << std::endl;
     sprintf(buf,"Total num of pe mappable reads  : %ld ",_pe_num_mappable_reads);
+    std::cout << buf  << std::endl;
+    sprintf(buf,"Total num of se unmappable reads: %ld ",_se_num_unmapped_reads);
+    std::cout << buf  << std::endl;
+    sprintf(buf,"Total num of pe unmappable reads: %ld ",_pe_num_unmapped_reads);
     std::cout << buf  << std::endl;
     sprintf(buf,"Number of single reads          : %ld ",_num_single_reads);
     std::cout << buf  << std::endl;

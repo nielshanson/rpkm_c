@@ -5,8 +5,12 @@ using namespace std;
 MatchOutputParser::MatchOutputParser(const std::string &filename, const std::string &format) {
      this->filename = filename;
      this->format = format;
+     this->num_unmapped_reads =0;
 };
 
+unsigned long MatchOutputParser::get_Num_Unmapped_Reads() {
+    return  this->num_unmapped_reads;
+}
 
 MatchOutputParser::~MatchOutputParser() {
 }
@@ -41,7 +45,9 @@ bool SamFileParser::nextline(MATCH &match) {
 
          if(fields.size() < 9)  continue;
 
-         if( matchString(std::string(fields[2]), skipStar, true)) continue;
+         if( matchString(std::string(fields[2]), skipStar, true)) { 
+            this->num_unmapped_reads++; continue; 
+         }
 
          _success = true;
          break;

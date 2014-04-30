@@ -21,10 +21,11 @@ public:
       vector<char *> tempv;
       virtual ~MatchOutputParser() = 0;
       vector<char *> fields;
-      
-public:
       MatchOutputParser(const std::string &filename, const std::string &format);
+      unsigned long get_Num_Unmapped_Reads();
       virtual bool nextline(MATCH &match)=0;
+protected:
+      unsigned long num_unmapped_reads;
 };
 
 
