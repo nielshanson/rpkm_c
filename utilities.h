@@ -16,6 +16,7 @@ struct Options {
     string orf_file; // .gff ORF file from PRODIGAL
     string pathways_table; // a table from Pathway Tools with ORFs
     string output_file; // location to write output file (i.e., update pathway table)
+    string stats_file; // location to write output file (i.e., update pathway table)
     vector<string> read_map_files;
     
     /* Flags and settings */
@@ -25,6 +26,7 @@ struct Options {
     // Constructor with default settings 
     Options(){
        contigs_file = "";
+       stats_file = ""; // location to write output file (i.e., update pathway table)
        read_map_files.clear();
        orf_file = "";
        pathways_table = "";

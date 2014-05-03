@@ -62,6 +62,8 @@ unsigned long create_contigs_dictionary(std::string contigs_file,  std::map<std:
 RUN_STATS  detect_multireads_blastoutput(const std::string &blastoutput_file, const std::string &format,\
      vector<MATCH> &all_reads, map<std::string, unsigned long> &multireads) {
 
+    
+
     MatchOutputParser *parser = ParserFactory::createParser(blastoutput_file, format);
     if( parser ==0 ) {
         std::cout << "ERROR : Cannot open a parser to parse the file " << blastoutput_file << std::endl;
@@ -97,8 +99,10 @@ RUN_STATS  detect_multireads_blastoutput(const std::string &blastoutput_file, co
             p.fourth = 0;
             reads_dict[match.query] = p;
        }
+       stats.num_total_reads++;
       
-//       std::cout << match.query <<"  " << match.parity << "  " << reads_dict[match.query].first << " " << reads_dict[match.query].second << std::endl;
+       // if it is not mapped then ignore it
+       if( !match.mapped)  continue;
 
        if( match.parity ) {
           reads_dict[match.query].first = true;
@@ -109,7 +113,7 @@ RUN_STATS  detect_multireads_blastoutput(const std::string &blastoutput_file, co
           reads_dict[match.query].fourth++;
        }
 
-       stats.num_total_reads++;
+       // store it to process later by looking up the dictionary
        all_reads.push_back(match);
 
        if(i%10000==0) {
@@ -203,7 +207,13 @@ void  process_blastoutput(const std::string & reads_map_file, std::map<string, C
            triplet.start = it->end;
            triplet.end = it->start;
        }
+       if( it->w ==0 ) {
+         std::cout << "why zero " << it->w <<std::endl;
+       }
        triplet.multi = it->w;
+       if( triplet.multi==0 ) {
+         std::cout << "why zero in triplet " << it->w <<std::endl;
+       }
        contigs_dictionary[it->subject].M.push_back(triplet);
     }
     //std::cout << i << std::endl;
@@ -230,8 +240,9 @@ void substring_coverage(std::map<string, CONTIG> &contigs_dictionary, const std:
          uncovered_length  +=  ( p_end > it->start  || it->start > end) ? 0 : it->start - p_end;
          if( it->end > p_end ) p_end = it->end;  //make sure the read start and end are not going beyoing the contig
           
-         if( (start <= it->start && it->start <= end) ||  (start <= it->end && it->end <= end)  )
+         if( (start <= it->start && it->start <= end) ||  (start <= it->end && it->end <= end)  ) {
             numreads += 1/static_cast<float>(it->multi);
+         }
      }
      uncovered_length += (p_end > end ) ? 0 : (end - p_end);
 
@@ -276,12 +287,15 @@ unsigned long ORFWise_coverage( map<string, CONTIG> &contigs_dictionary, const s
            try {
                substring_coverage(contigs_dictionary, match.query, match.start, match.end, coverage); 
                orf_length += match.end - match.start;
-         //   std::cout << coverage.coverage << "  " << coverage.numreads << "  " << coverage.substring_length << "   " << coverage.uncovered_length << std::endl;
+        //    std::cout << coverage.coverage << "  " << coverage.numreads << "  " << coverage.substring_length << "   " << coverage.uncovered_length << std::endl;
                orfnames[match.subject] = (1E9/static_cast<float>(num_mappable_reads))*(static_cast<float>(coverage.numreads)/static_cast<float>(coverage.substring_length));
+              // std::cout << num_mappable_reads << "  " << coverage.numreads << "  " <<  match.subject << "  " << orfnames[match.subject] << std::endl;
            }
+
            catch(...) {
                std::cout << "error\n";
                orfnames[match.subject] = 0;
+               exit(0);
            }
       // }
 
@@ -301,6 +315,7 @@ void add_RPKM_value_to_pathway_table(const string &pathways_table_filename, cons
     }   
 
     string stringCOMMENT("PWY_NAME");
+
 /*
     vector<char *> fields; 
 
@@ -342,6 +357,7 @@ void add_RPKM_value_to_pathway_table(const string &pathways_table_filename, cons
        
        pwy_rpkm = 0;
        for(vector<char *>::iterator it=fields.begin()+5; it!=fields.end() ; it++) {
+         // std::cout << *it << std::endl;
           pwy_rpkm += orfnames[std::string(*it)];
        }
        sprintf(buf, "\t%0.2f", pwy_rpkm) ;

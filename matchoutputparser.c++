@@ -97,7 +97,7 @@ bool SamFileParser::nextline(MATCH &match) {
         match.subject = std::string(fields[2]);
         match.start = atoi(fields[3]);
         match.end =  match.start +  std::string(fields[9]).size();
-        bool status = getMateInfo(static_cast<unsigned int>(atoi(fields[1])), match);
+        getMateInfo(static_cast<unsigned int>(atoi(fields[1])), match);
         //if(status==false) return false;
 
 

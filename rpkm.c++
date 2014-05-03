@@ -23,11 +23,23 @@ int main( int argc, char **argv ){
 
     map<string, CONTIG> contigs_dictionary;
     unsigned long genome_length = create_contigs_dictionary(options.contigs_file,  contigs_dictionary);
-   // std::cout << " Total genome length " << genome_length << std::endl;
+/*
+    std::cout << " Total genome length " << genome_length << std::endl;
+    std::cout << "number of contigs " << contigs_dictionary.size() << std::endl;
+*/
+    bool print_stats_file = false; 
+
+    std::ostream *output;
+    std::ofstream fout;
+    if( options.stats_file.size() > 0) {
+        print_stats_file = true; 
+        fout.open(options.stats_file.c_str(), std::ifstream::out);
+        output = &fout;
+    }   
  
     vector<MATCH> all_reads;
     all_reads.reserve(1000000);
-    unsigned long num_mappable_reads =0;
+    //unsigned long num_mappable_reads =0;
     // creating the read multiplicity counts if there is a single end read file 
     map<std::string, unsigned long> multireads;
     
@@ -39,14 +51,26 @@ int main( int argc, char **argv ){
         all_reads.clear();
         std::cout << "\n\n" << "Searching for multireads from single read file " << *it << std::endl;
         _stats = detect_multireads_blastoutput(*it, options.reads_map_file_format, all_reads, multireads);
-        _stats.printStats();
+        
+        _stats.printStats(&std::cout);
+        if(print_stats_file) {
+            *output << "\nStats for file :  " << *it << std::endl;
+            _stats.printStats(output);
+        }
+
         stats = stats + _stats;
         process_blastoutput(*it, contigs_dictionary, options.reads_map_file_format, all_reads,  multireads);
 //        std::cout << "Number of mappable reads " << all_reads.size() << std::endl;
     }
   
    
-    stats.printStats();
+    std::cout << "Composite stats for all files " << std::endl;
+
+    if( print_stats_file)
+       *output << "\nComposite stats for all files " << std::endl;
+ 
+    stats.printStats(&std::cout);
+    if(print_stats_file) _stats.printStats(output);
  
 
     std::cout << "\n\nSorting  the read matches .....";
@@ -71,8 +95,10 @@ int main( int argc, char **argv ){
     }
     
     map<string, float> _all_orfnames;
+    float total_distinct_reads = static_cast<double>(stats.num_distinct_reads_mapped) + static_cast<double>(stats.num_distinct_reads_unmapped);
     unsigned long orf_length = 0;
-    unsigned long _num_orfs = ORFWise_coverage(contigs_dictionary, options.orf_file, _all_orfnames, genome_length,  orf_length, num_mappable_reads);
+    unsigned long _num_orfs = ORFWise_coverage(contigs_dictionary, options.orf_file, _all_orfnames,\
+                               genome_length,  orf_length, total_distinct_reads);
  //   std::cout << "done computing orfwise coverage " << std::endl;
 
 /*
@@ -90,6 +116,7 @@ int main( int argc, char **argv ){
     float _count = 0 ;
     for(map<string, float>::iterator it= _all_orfnames.begin(); it != _all_orfnames.end(); it++)  {
         _rpkm_sample += it->second;
+       // std::cout << _rpkm_sample << std::endl;
         _count += 1;
     }
     _count = (_count > 0) ? _count : 1;
@@ -112,7 +139,6 @@ int main( int argc, char **argv ){
     char buf[100000];
 
     std::cout << std::endl;
-
     sprintf(buf, "Number of Contigs               : %ld ", (long int)contigs_dictionary.size() );
     std::cout << buf<< std::endl;
 
@@ -145,7 +171,6 @@ int main( int argc, char **argv ){
 
     sprintf(buf,"Number of total reads           : %d ",stats.num_distinct_reads_mapped + stats.num_distinct_reads_unmapped);
     std::cout << buf  << std::endl;
-    float total_distinct_reads = static_cast<double>(stats.num_distinct_reads_mapped) + static_cast<double>(stats.num_distinct_reads_unmapped);
 
     total_distinct_reads = total_distinct_reads ==0 ? 1 : total_distinct_reads; 
 
@@ -165,4 +190,65 @@ int main( int argc, char **argv ){
     sprintf(buf,"Avg rpkm across ORFs pwy table  : %.2f ",_avg_rpkm_table);
     std::cout << buf  << std::endl;
  
+
+   if( print_stats_file ) {
+        *output << std::endl;
+        *output << "Mapping stats for the sample " << std::endl;
+        sprintf(buf, "Number of Contigs               : %ld ", (long int)contigs_dictionary.size() );
+        *output << buf<< std::endl;
+    
+        sprintf(buf, "Number of ORFs in sample        : %ld ",_num_orfs);
+        *output << buf  << std::endl;
+    
+        sprintf(buf, "Number of ORFs in pathway table : %ld ",(long int)_count); 
+        *output << buf  << std::endl;
+    
+        sprintf(buf,"Total contig cover length       : %ld ", total_covered_length/100);
+        *output << buf  << std::endl;
+    
+        sprintf(buf,"Total Contig Length             : %ld ",total_contig_length);
+        *output << buf  << std::endl;
+    
+        sprintf(buf,"Total Genome Length             : %ld ",genome_length);
+        *output << buf  << std::endl;
+    
+        sprintf(buf,"Perentage contig coverage       : %-5.2f%%", (float)total_covered_length/(float)total_contig_length);
+        *output << buf  << std::endl;
+    
+        sprintf(buf,"Total ORF Length                : %ld ",orf_length);
+        *output << buf  << std::endl;
+    
+        sprintf(buf,"Total num of mappable reads     : %d ",stats.num_distinct_reads_mapped);
+        *output << buf  << std::endl;
+    
+        sprintf(buf,"Total num of unmappable reads   : %d ",stats.num_distinct_reads_unmapped) ;
+        *output << buf  << std::endl;
+    
+        sprintf(buf,"Number of total reads           : %d ",stats.num_distinct_reads_mapped + stats.num_distinct_reads_unmapped);
+        *output << buf  << std::endl;
+    
+        total_distinct_reads = total_distinct_reads ==0 ? 1 : total_distinct_reads; 
+    
+        sprintf(buf,"Percentage of mapped reads      : %-5.2f ",\
+              100*(static_cast<double>(stats.num_distinct_reads_mapped)/total_distinct_reads )) ;
+        *output << buf  << std::endl;
+    
+        sprintf(buf,"Number of multireads            : %d ", stats.num_multireads);
+        *output << buf  << std::endl;
+    
+        sprintf(buf,"Percentage of multireads        : %-5.2f%% ",100*(float)stats.num_multireads/total_distinct_reads);
+        *output << buf  << std::endl;
+    
+        sprintf(buf,"Avg rpkm across ORFs in sample  : %.2f ",_avg_rpkm_sample);
+        *output << buf  << std::endl;
+    
+        sprintf(buf,"Avg rpkm across ORFs pwy table  : %.2f ",_avg_rpkm_table);
+        *output << buf  << std::endl;
+
+        fout.close();
+ }
+
+
+
+
 } 

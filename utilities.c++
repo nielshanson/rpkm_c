@@ -16,6 +16,9 @@ bool Options::SetOptions(int argc, char *argv[]) {
        if( strncmp(argv[i], "-c", strlen("-c")) == 0 ) {   
           this->contigs_file = argv[++i];
        }   
+       if( strncmp(argv[i], "--stats", strlen("-stats")) == 0 ) {   
+          this->stats_file = argv[++i];
+       }   
        else if(strncmp(argv[i], "--r", strlen("--r")) == 0 ) {   
           this->read_map_files.push_back(string(argv[++i]));
        }   

@@ -7,7 +7,8 @@
 using namespace std;
 
 typedef struct _TRIPLET {
-    unsigned int start, end, multi;
+    unsigned int start, end;
+    float multi;
 } TRIPLET;
 
 typedef vector<TRIPLET> TRIPLETS;
@@ -81,19 +82,22 @@ typedef struct _RUN_STATS {
     }
 
 
-    void printStats() {
-        std::cout << std::endl;
-        std::cout << "Number of lines in SAM file      : " << num_total_reads << std::endl; 
-        std::cout << "Number of unmapped lines         : " << num_unmapped_reads << std::endl; 
-        std::cout << "Number of mapped lines           : " << num_mapped_reads << std::endl; 
-        std::cout << "Number of singletons             : " << num_singleton_reads << std::endl; 
-        std::cout << "Number of read 1                 : " << num_reads_1  << std::endl; 
-        std::cout << "Number of read 2                 : " << num_reads_2 << std::endl; 
-        std::cout << "Number of multireads             : " << num_multireads << std::endl; 
-        std::cout << "Number of secondary hits         : " << num_secondary_hits << std::endl; 
-        std::cout << "Number distinct reads mapped     : " << num_distinct_reads_mapped << std::endl; 
-        std::cout << "Number distinct reads unmapped   : " << num_distinct_reads_unmapped << std::endl; 
+    void printStats( std::ostream *output ) {
+        *output << std::endl;
+        *output << "Number of lines in SAM file      : " << num_total_reads << std::endl; 
+        *output << "Number of unmapped lines         : " << num_unmapped_reads << std::endl; 
+        *output << "Number of mapped lines           : " << num_mapped_reads << std::endl; 
+        *output << "Number of singletons             : " << num_singleton_reads << std::endl; 
+        *output << "Number of read 1                 : " << num_reads_1  << std::endl; 
+        *output << "Number of read 2                 : " << num_reads_2 << std::endl; 
+        *output << "Number of multireads             : " << num_multireads << std::endl; 
+        *output << "Number of secondary hits         : " << num_secondary_hits << std::endl; 
+        *output << "Number distinct reads mapped     : " << num_distinct_reads_mapped << std::endl; 
+        *output << "Number distinct reads unmapped   : " << num_distinct_reads_unmapped << std::endl; 
     }
+
+
+
 } RUN_STATS;
 
 typedef struct _COVERAGE {
