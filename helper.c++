@@ -59,8 +59,8 @@ unsigned long create_contigs_dictionary(std::string contigs_file,  std::map<std:
 }
 
 
-unsigned long detect_multireads_blastoutput(const std::string &blastoutput_file, const std::string &format,\
-     vector<MATCH> &all_reads, map<std::string, unsigned long> &multireads, unsigned long *_num_unmapped_reads,  bool paired_reads) {
+RUN_STATS  detect_multireads_blastoutput(const std::string &blastoutput_file, const std::string &format,\
+     vector<MATCH> &all_reads, map<std::string, unsigned long> &multireads) {
 
     MatchOutputParser *parser = ParserFactory::createParser(blastoutput_file, format);
     if( parser ==0 ) {
@@ -69,59 +69,93 @@ unsigned long detect_multireads_blastoutput(const std::string &blastoutput_file,
 
     MATCH  match;
     map<std::string, unsigned long> _multireads;
+
+    map<std::string, struct QUADRUPLE<bool, bool, unsigned int, unsigned  int > > reads_dict;
+   // map<std::string, std::pair<bool, bool > > reads_dict;
+ //   map<std::string, std::pair<unsigned int, unsigned int > > multi_reads_dict;
+
     std::cout << std::endl << "Number of reads processed : " ;
-/*
-    int n =0;
-    for(; ; n++ )  {
-       if( !parser->nextline(match) )  break;
-       if( n >= _MAX ) break;
-        all_reads.push_back(match);
-       if(n%10000==0) {
-           std::cout << "\n\033[F\033[J";
-           std::cout << n ;
-       }
-       //std::cout << match.query << "   " << match.subject <<  " "  << match.start << " " << match.end << std::endl;
-       if( _multireads.find(match.query)==_multireads.end() ) _multireads[match.query] = 0;
-       _multireads[match.query] += 1;
-    }
-*/
+
+    RUN_STATS stats;
+
     int i ;
+    struct QUADRUPLE <bool, bool, unsigned int, unsigned int>   p;
     for( i =0; ; i++ )  {
        if( !parser->nextline(match) )  break;
        if( i >= _MAX ) break;
-        all_reads.push_back(match);
+
+       if( match.mapped)  stats.num_mapped_reads++;
+       else  stats.num_unmapped_reads++;
+
+       if( match.parity)  stats.num_reads_2++; else stats.num_reads_1++;
+       //if( match.multi)  num_multireads++;
+
+       if( reads_dict.find(match.query) == reads_dict.end()) {
+            p.first = false; 
+            p.second = false;
+            p.third = 0; 
+            p.fourth = 0;
+            reads_dict[match.query] = p;
+       }
+      
+//       std::cout << match.query <<"  " << match.parity << "  " << reads_dict[match.query].first << " " << reads_dict[match.query].second << std::endl;
+
+       if( match.parity ) {
+          reads_dict[match.query].first = true;
+          reads_dict[match.query].third++;
+       }
+       else {
+          reads_dict[match.query].second = true;
+          reads_dict[match.query].fourth++;
+       }
+
+       stats.num_total_reads++;
+       all_reads.push_back(match);
+
        if(i%10000==0) {
            std::cout << "\n\033[F\033[J";
            std::cout << i ;
        }
        //std::cout << match.query << "   " << match.subject <<  " "  << match.start << " " << match.end << std::endl;
-       if( _multireads.find(match.query)==_multireads.end() ) _multireads[match.query] = 0;
-       _multireads[match.query] += 1;
     }
 
-//    all_sequence_reads += n;
+    for( map<std::string, struct QUADRUPLE<bool, bool, unsigned int, unsigned int> >::iterator it = reads_dict.begin(); it != reads_dict.end(); it++)  {
+        if( !(it->second.first && it->second.second))  stats.num_singleton_reads++;
+        if( it->second.third > 1)  { stats.num_multireads++; stats.num_secondary_hits += it->second.third -1 ; }
+        if( it->second.fourth  > 1) {  stats.num_multireads++; stats.num_secondary_hits += it->second.fourth-1; }
+    }
 
-    // now store the multireads into the multireads map variable
-    unsigned long count;
-    for( map<std::string, unsigned long>::iterator it = _multireads.begin(); it != _multireads.end(); it++) {
-       if( !paired_reads &&  it->second > 1)  
-          multireads[it->first] = it->second;
 
-       if( paired_reads &&  it->second > 2)   {
-          count = static_cast<int>( it->second/2);
-          multireads[it->first] = count + (it->second%2);
+
+    stats.num_distinct_reads_unmapped = stats.num_unmapped_reads;
+    stats.num_distinct_reads_mapped = stats.num_mapped_reads - stats.num_secondary_hits;
+
+
+    for( vector<MATCH>::iterator it = all_reads.begin(); it != all_reads.end(); it++)  {
+
+       if( it->parity == 0  ) {
+           if( reads_dict[it->query].first && reads_dict[it->query].second )
+               it->w = 0.5/static_cast<float>(reads_dict[it->query].third);
+           else
+               it->w = 1/static_cast<float>(reads_dict[it->query].third);
        }
+       else  { //parity 1
+           if( reads_dict[it->query].first && reads_dict[it->query].second )
+               it->w = 0.5/static_cast<float>(reads_dict[it->query].fourth);
+           else
+               it->w = 1/static_cast<float>(reads_dict[it->query].fourth);
+       }
+//    all_sequence_reads += n;
     }
-    std::cout << std::endl << "Number of multireads       : " << multireads.size() << std::endl; 
+    // now store the multireads into the multireads map variable
     
-
-    *_num_unmapped_reads= parser->get_Num_Unmapped_Reads() ;
+    //*_num_unmapped_reads= parser->get_Num_Unmapped_Reads() ;
     delete parser;
-    return multireads.size();
+    return stats;
 }
 
 
-unsigned long process_blastoutput(const std::string & reads_map_file, std::map<string, CONTIG> &contigs_dictionary,\
+void  process_blastoutput(const std::string & reads_map_file, std::map<string, CONTIG> &contigs_dictionary,\
       const std::string &reads_map_file_format, std::vector<MATCH> &all_reads,   std::map<string, unsigned long> & multireads) {
 
     MATCH  match;
@@ -141,6 +175,7 @@ unsigned long process_blastoutput(const std::string & reads_map_file, std::map<s
     
     int i =0;
     std::cout << "Number of hits processed : " ;
+    // iteratre through individual hits/alignments 
     for(vector<MATCH>::iterator it=all_reads.begin();  it!= all_reads.end(); it++ )  {
 
        if( i >=_MAX ) break;
@@ -151,11 +186,6 @@ unsigned long process_blastoutput(const std::string & reads_map_file, std::map<s
        }
        i++;
 
-       //std::cout << match.query << std::endl;
-       //if( read_map.find(match.query)== read_map.begin() ) {
-        // std::cout << match.query << std::endl;
-       read_map[it->query] = true;
-       //}
 
        if( contigs_dictionary.find(it->subject)==contigs_dictionary.end() ) {
           std::cout << " Missing contig " << it->subject << std::endl;
@@ -173,13 +203,10 @@ unsigned long process_blastoutput(const std::string & reads_map_file, std::map<s
            triplet.start = it->end;
            triplet.end = it->start;
        }
-       triplet.multi = read_multiplicity;
+       triplet.multi = it->w;
        contigs_dictionary[it->subject].M.push_back(triplet);
     }
-    std::cout << i << std::endl;
-    std::cout << "Number of mappable reads : " << read_map.size() << std::endl;
-    
-    return read_map.size();
+    //std::cout << i << std::endl;
 }
 
 

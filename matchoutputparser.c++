@@ -31,6 +31,42 @@ SamFileParser::~SamFileParser() {
    this->input.close();
 }
 
+bool SamFileParser::getMateInfo(unsigned int i, MATCH &match)  {
+
+    unsigned int a = i;
+    bool singleton  = 0;
+    //bool c = a&1;
+   
+     
+    a = a >> 2;
+    match.mapped = !(a&1); 
+    singleton = a&1;
+
+    a = a >> 1;
+    match.orphan = a&1; 
+    singleton = singleton^(a&1);
+
+    a = a >> 3;
+     
+    if( a&1 )  {
+         match.parity = 0; 
+         a = a >> 1;
+    }
+    else {
+         a = a >> 1;
+         if( a&1 )   match.parity  = 1; 
+         else return false;
+    }
+    a = a >> 1;
+    match.multi = a&1; 
+    
+    a = a >> 3;
+    match.chimeric = a&1; 
+    match.singleton = singleton;
+
+    return true;
+
+}
 bool SamFileParser::nextline(MATCH &match) {
      string line;
      std::string skipPattern("@");
@@ -38,6 +74,7 @@ bool SamFileParser::nextline(MATCH &match) {
 
      bool _success = false;
      while( std::getline(this->input, line ).good()) {
+        // std::cout << line << std::endl;
          if(matchString(line, skipPattern, true) ) continue;
 
          fields.clear();
@@ -45,10 +82,11 @@ bool SamFileParser::nextline(MATCH &match) {
 
          if(fields.size() < 9)  continue;
 
+/*
          if( matchString(std::string(fields[2]), skipStar, true)) { 
             this->num_unmapped_reads++; continue; 
          }
-
+*/
          _success = true;
          break;
      }  
@@ -59,6 +97,12 @@ bool SamFileParser::nextline(MATCH &match) {
         match.subject = std::string(fields[2]);
         match.start = atoi(fields[3]);
         match.end =  match.start +  std::string(fields[9]).size();
+        bool status = getMateInfo(static_cast<unsigned int>(atoi(fields[1])), match);
+        //if(status==false) return false;
+
+
+        //std::cout << match.query << "  " << match.mapped << " "  << match.parity << " " << match.orphan << " " << match.chimeric << " " << match.multi << "  " << fields[1] << std::endl;
+
         return true;
      }
      

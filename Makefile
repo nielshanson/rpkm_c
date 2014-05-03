@@ -9,7 +9,7 @@ SOURCES= utilities.c++ rpkm.c++ helper.c++ fastareader.c++ matchoutputparser.c++
 OBJECTS= $(SOURCES:.c++=.o)
 HEADERS= $(SOURCES:.c++=.h)
 
-%.o: %.c++   $(SOURCES)
+%.o: %.c++   $(SOURCES) types.h
 	$(CC)  $< -c -o $@  
 
 all: $(PROG)
@@ -17,7 +17,7 @@ all: $(PROG)
 clean:
 	rm -rf $(OBJECTS) $(PROG)
 
-$(PROG): $(OBJECTS) $(HEADERS)
+$(PROG): $(OBJECTS) $(HEADERS) types.h
 	$(CC) $(CCFLAGS) $(OBJECTS) -o $(PROG)
 
 

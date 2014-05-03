@@ -36,6 +36,7 @@ private:
 public:
       SamFileParser(const std::string &filename, const std::string &format);
       virtual bool nextline(MATCH &match);
+      bool getMateInfo(unsigned int i, MATCH &match);
       ~SamFileParser();
 };
 

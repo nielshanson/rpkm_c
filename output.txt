@@ -1,0 +1,8 @@
+Number of total reads            : 53428234
+Number of unmapped reads         : 30906764
+Number of mapped reads           : 22521470
+Number of singletons             : 0
+Number of read 1                 : 26719390
+Number of read 2                 : 26708844
+Number chimeric                  : 328238
+Number of multireads             : 323849

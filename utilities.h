@@ -13,28 +13,26 @@ struct Options {
    
     /* Input files for RPKM */
     string contigs_file; // the contigs file
-    string se_reads_map_file; // single-end or BLAST alginments
-    string pe_reads_map_file; // paired-end alignments
     string orf_file; // .gff ORF file from PRODIGAL
     string pathways_table; // a table from Pathway Tools with ORFs
     string output_file; // location to write output file (i.e., update pathway table)
+    vector<string> read_map_files;
     
     /* Flags and settings */
     bool multi_reads; // flag for detecting multiple mapping of reads
     string reads_map_file_format; // aligner type BWA or BLAST, two SAM files or one
     
     // Constructor with default settings 
-	Options(){
+    Options(){
        contigs_file = "";
-       se_reads_map_file = "";
-       pe_reads_map_file = "";
+       read_map_files.clear();
        orf_file = "";
        pathways_table = "";
        output_file = "";
 
        multi_reads = false;
        reads_map_file_format = "blastout";  
-	};
+    };
     
     void print_usage( char *arg);
     void print_options();

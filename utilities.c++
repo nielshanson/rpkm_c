@@ -6,7 +6,7 @@
 void Options::print_usage(char *arg) {
    std::cout << "USAGE : " << arg\
              << "-c/--contigs contigs_file --r1/--reads-map1 reads_ma  p_file "\
-             << "--r2/--reads-map2 (Only required for paired-end sam files) reads_map_file "\
+             << "--r/--reads-map (Only required for paired-end sam files) reads_map_file "\
              << "-O/--ORF  orf_file_gff -p/--pathways pathways_table -f/--format format [default: blastout]  [ -o outputfile ]"\
              << std::endl;
 }
@@ -16,12 +16,9 @@ bool Options::SetOptions(int argc, char *argv[]) {
        if( strncmp(argv[i], "-c", strlen("-c")) == 0 ) {   
           this->contigs_file = argv[++i];
        }   
-       else if( strncmp(argv[i], "--r1", strlen("--r1")) == 0 ) {   
-          this->se_reads_map_file =  argv[++i];
+       else if(strncmp(argv[i], "--r", strlen("--r")) == 0 ) {   
+          this->read_map_files.push_back(string(argv[++i]));
        }   
-       else if( strncmp(argv[i], "--r2", strlen("--r2")) == 0 ) {   
-          this->pe_reads_map_file =  argv[++i];
-       }
        else if( strncmp(argv[i], "-o", strlen("-o")) == 0 ) {   
           this->output_file = argv[++i];
        }
@@ -52,7 +49,7 @@ bool Options::SetOptions(int argc, char *argv[]) {
        return false;
     }
 
-    if( this->se_reads_map_file.size()==0 &&  this->pe_reads_map_file.size()==0) {
+    if( this->read_map_files.size()==0 ) {
        std::cout << "ERROR: There must be a at least one read map file" << std::endl;
        return false;
     }
@@ -71,14 +68,12 @@ bool Options::SetOptions(int argc, char *argv[]) {
 };
 
 void Options::print_options() {
-       std::cout << "Contigs file            : "<< this->contigs_file << std::endl; 
-       std::cout << "Single end reads file   : "<< this->se_reads_map_file << std::endl; 
-       std::cout << "Paired ends reads file  : "<< this->pe_reads_map_file << std::endl; 
-       std::cout << "ORF file [GFF]          : "<< this->orf_file << std::endl; 
-       std::cout << "Pathways table          : "<< this->pathways_table << std::endl; 
-       std::cout << "Output file             : "<< this->output_file << std::endl; 
-       std::cout << "File Format             : "<< this->reads_map_file_format << std::endl; 
-       std::cout << "Multi reads             : "<< this->multi_reads << std::endl; 
+       std::cout << "Contigs file (FASTA)              : "<< this->contigs_file << std::endl; 
+       std::cout << "Read alignment file (SAM format)  : "<< this->read_map_files.size() << std::endl; 
+       std::cout << "ORF file [GFF]                    : "<< this->orf_file << std::endl; 
+       std::cout << "Pathways table                    : "<< this->pathways_table << std::endl; 
+       std::cout << "Output file                       : "<< this->output_file << std::endl; 
+       std::cout << "Multi read treatment              : "<< this->multi_reads << std::endl; 
 }
 
  
