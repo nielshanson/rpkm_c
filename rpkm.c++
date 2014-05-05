@@ -70,7 +70,7 @@ int main( int argc, char **argv ){
        *output << "\nComposite stats for all files " << std::endl;
  
     stats.printStats(&std::cout);
-    if(print_stats_file) _stats.printStats(output);
+    if(print_stats_file) stats.printStats(output);
  
 
     std::cout << "\n\nSorting  the read matches .....";
