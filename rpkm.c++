@@ -49,7 +49,7 @@ int main( int argc, char **argv ){
     for( vector<string>::iterator it = options.read_map_files.begin() ; it != options.read_map_files.end(); it++)  { 
         if( it->size() == 0 ) continue;
         all_reads.clear();
-        std::cout << "\n\n" << "Searching for multireads from single read file " << *it << std::endl;
+        std::cout << "\n\n" << "Searching for multireads from reads file " << *it << std::endl;
         _stats = detect_multireads_blastoutput(*it, options.reads_map_file_format, all_reads, multireads);
         
         _stats.printStats(&std::cout);

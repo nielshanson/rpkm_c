@@ -7,7 +7,8 @@ void Options::print_usage(char *arg) {
    std::cout << "USAGE : " << arg\
              << "-c/--contigs contigs_file --r1/--reads-map1 reads_ma  p_file "\
              << "--r/--reads-map (Only required for paired-end sam files) reads_map_file "\
-             << "-O/--ORF  orf_file_gff -p/--pathways pathways_table -f/--format format [default: blastout]  [ -o outputfile ]"\
+             << "-O/--ORF  orf_file_gff -p/--pathways pathways_table -f/--format format [default: blastout]"\
+             << "--stats stats_file   [ -o outputfile ]"\
              << std::endl;
 }
 
