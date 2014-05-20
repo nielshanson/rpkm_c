@@ -28,5 +28,7 @@ unsigned long ORFWise_coverage( map<string, CONTIG> &contigs_dictionary, const s
 
 void add_RPKM_value_to_pathway_table(const string &pathways_table, const string &output_file, map<string, float> &orfnames);
 
+void writeOut_ORFwise_RPKM_values(const string orf_rpkm_file,  map<string, float> &orfnames);
+
 
 #endif //_HELPER

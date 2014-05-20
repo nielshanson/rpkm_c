@@ -7,7 +7,8 @@ void Options::print_usage(char *arg) {
    std::cout << "USAGE : " << arg\
              << "-c/--contigs contigs_file --r1/--reads-map1 reads_ma  p_file "\
              << "--r/--reads-map (Only required for paired-end sam files) reads_map_file "\
-             << "-O/--ORF  orf_file_gff -p/--pathways pathways_table -f/--format format [default: blastout]"\
+             << "-O/--ORF  orf_file_gff -p/--pathways pathways_table -f/--format format [default: blastout] "\
+             << "--ORF-RPKM  orf_rpkm_file [default: None] "\
              << "--stats stats_file   [ -o outputfile ]"\
              << std::endl;
 }
@@ -28,6 +29,9 @@ bool Options::SetOptions(int argc, char *argv[]) {
        }
        else if( strncmp(argv[i], "-O", strlen("-O")) == 0 ) {   
           this->orf_file = argv[++i];
+       }
+       else if( strncmp(argv[i], "--ORF-RPKM", strlen("--ORF-RPKM")) == 0 ) {   
+          this->orf_rpkm_file = argv[++i];
        }
        else if( (strncmp(argv[i], "-m", strlen("-m")) == 0 ) || ( strncmp(argv[i], "--multireads", strlen("--multireads")) == 0) ) {   
           this->multi_reads = true;

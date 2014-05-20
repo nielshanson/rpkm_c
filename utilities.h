@@ -17,6 +17,7 @@ struct Options {
     string pathways_table; // a table from Pathway Tools with ORFs
     string output_file; // location to write output file (i.e., update pathway table)
     string stats_file; // location to write output file (i.e., update pathway table)
+    string orf_rpkm_file; // location to write output file (i.e., update pathway table)
     vector<string> read_map_files;
     
     /* Flags and settings */
@@ -31,6 +32,8 @@ struct Options {
        orf_file = "";
        pathways_table = "";
        output_file = "";
+       output_file = "";
+       orf_rpkm_file = ""; // location to write output file (i.e., update pathway table)
 
        multi_reads = false;
        reads_map_file_format = "blastout";  

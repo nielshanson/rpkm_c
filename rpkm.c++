@@ -107,6 +107,10 @@ int main( int argc, char **argv ){
     }
 
 */
+
+    
+
+
     if( options.pathways_table.size() > 0 )
         add_RPKM_value_to_pathway_table(options.pathways_table, options.output_file, _all_orfnames);
     
@@ -121,6 +125,13 @@ int main( int argc, char **argv ){
     }
     _count = (_count > 0) ? _count : 1;
     float _avg_rpkm_sample  = _rpkm_sample/_count;
+
+
+
+     // Now print out the ORFwise rpkm value
+    if( options.orf_rpkm_file.size() > 0 )
+        writeOut_ORFwise_RPKM_values(options.orf_rpkm_file, _all_orfnames);
+
 
 
     // rpkm average for the table

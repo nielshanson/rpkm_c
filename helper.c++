@@ -371,3 +371,15 @@ void add_RPKM_value_to_pathway_table(const string &pathways_table_filename, cons
     if( output_file.size() !=0 )  fout.close();
     
 }
+
+
+void writeOut_ORFwise_RPKM_values(const string orf_rpkm_file,  map<string, float> &orfnames) {
+    ofstream output_file;
+
+    output_file.open(orf_rpkm_file.c_str());
+    for(map<string, float>::iterator it= orfnames.begin(); it != orfnames.end(); it++)  {
+         output_file << it->first << "\t" << it->second << endl;
+    }
+    output_file.close();
+
+}
