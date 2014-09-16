@@ -1,13 +1,13 @@
+#include <map>
+#include "types.h"
 #include "utilities.h"
 #include "helper.h"
-#include <map>
 
 
 bool compare_triplets(const TRIPLET &a, const TRIPLET &b) {
    return a.start < b.start ? true : false; 
 }
  
-
 int main( int argc, char **argv ){
     // parse options
     Options options;
@@ -38,7 +38,7 @@ int main( int argc, char **argv ){
     }   
  
     vector<MATCH> all_reads;
-    all_reads.reserve(1000000);
+    all_reads.reserve(80000000);
     //unsigned long num_mappable_reads =0;
     // creating the read multiplicity counts if there is a single end read file 
     map<std::string, unsigned long> multireads;
@@ -49,31 +49,35 @@ int main( int argc, char **argv ){
     for( vector<string>::iterator it = options.read_map_files.begin() ; it != options.read_map_files.end(); it++)  { 
         if( it->size() == 0 ) continue;
         all_reads.clear();
-        std::cout << "\n\n" << "Searching for multireads from reads file " << *it << std::endl;
-        _stats = detect_multireads_blastoutput(*it, options.reads_map_file_format, all_reads, multireads);
+        if( options.show_status ) 
+          std::cout << "\n\n" << "Searching for multireads from reads file " << *it << std::endl;
+        _stats = detect_multireads_blastoutput(*it, options.reads_map_file_format, all_reads, multireads, options.show_status);
         
-        _stats.printStats(&std::cout);
+        if( options.show_status ) _stats.printStats(&std::cout);
+
         if(print_stats_file) {
             *output << "\nStats for file :  " << *it << std::endl;
             _stats.printStats(output);
         }
 
         stats = stats + _stats;
-        process_blastoutput(*it, contigs_dictionary, options.reads_map_file_format, all_reads,  multireads);
+        process_blastoutput(*it, contigs_dictionary, options.reads_map_file_format, all_reads,  multireads, options.show_status);
 //        std::cout << "Number of mappable reads " << all_reads.size() << std::endl;
     }
   
    
-    std::cout << "Composite stats for all files " << std::endl;
+    if( options.show_status ) 
+       std::cout << "Composite stats for all files " << std::endl;
 
     if( print_stats_file)
        *output << "\nComposite stats for all files " << std::endl;
  
-    stats.printStats(&std::cout);
+    if( options.show_status ) stats.printStats(&std::cout);
+
     if(print_stats_file) stats.printStats(output);
  
 
-    std::cout << "\n\nSorting  the read matches .....";
+    if( options.show_status ) std::cout << "\n\nSorting  the read matches .....";
     for(map<string, CONTIG>::iterator it = contigs_dictionary.begin(); it != contigs_dictionary.end(); it++) {
        std::sort(it->second.M.begin(), it->second.M.end(), compare_triplets);
     /*    for(TRIPLETS::iterator it1= it->second.M.begin(); it1 != it->second.M.end(); it1++) {
@@ -108,10 +112,7 @@ int main( int argc, char **argv ){
 
 */
 
-    
-
-
-    if( options.pathways_table.size() > 0 )
+    if( options.pathways_table.size() > 0 && options.output_file.size() > 0 )
         add_RPKM_value_to_pathway_table(options.pathways_table, options.output_file, _all_orfnames);
     
 

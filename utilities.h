@@ -22,6 +22,8 @@ struct Options {
     
     /* Flags and settings */
     bool multi_reads; // flag for detecting multiple mapping of reads
+    bool show_status; // shows the counter that countes the number of reads processed, and other info 
+                       // on screen
     string reads_map_file_format; // aligner type BWA or BLAST, two SAM files or one
     
     // Constructor with default settings 
@@ -36,6 +38,7 @@ struct Options {
        orf_rpkm_file = ""; // location to write output file (i.e., update pathway table)
 
        multi_reads = false;
+       show_status = false;
        reads_map_file_format = "blastout";  
     };
     

@@ -6,7 +6,7 @@
 void Options::print_usage(char *arg) {
    std::cout << "USAGE : " << arg\
              << "-c/--contigs contigs_file --r1/--reads-map1 reads_ma  p_file "\
-             << "--r/--reads-map (Only required for paired-end sam files) reads_map_file "\
+             << "-r/--reads-map (Only required for paired-end sam files) reads_map_file "\
              << "-O/--ORF  orf_file_gff -p/--pathways pathways_table -f/--format format [default: blastout] "\
              << "--ORF-RPKM  orf_rpkm_file [default: None] "\
              << "--stats stats_file   [ -o outputfile ]"\
@@ -15,14 +15,19 @@ void Options::print_usage(char *arg) {
 
 bool Options::SetOptions(int argc, char *argv[]) { 
    for(int i = 1; i < argc ; i++) {   
+   //    std::cout << "Now after -c " << argv[i] << std::endl;
        if( strncmp(argv[i], "-c", strlen("-c")) == 0 ) {   
           this->contigs_file = argv[++i];
        }   
-       if( strncmp(argv[i], "--stats", strlen("-stats")) == 0 ) {   
+       if( strncmp(argv[i], "--stats", strlen("--stats")) == 0 ) {   
           this->stats_file = argv[++i];
        }   
-       else if(strncmp(argv[i], "--r", strlen("--r")) == 0 ) {   
+       else if(strncmp(argv[i], "-r", strlen("-r")) == 0 ) {   
           this->read_map_files.push_back(string(argv[++i]));
+       }   
+       else if(strncmp(argv[i], "--status", strlen("--status")) == 0 ) {   
+    //      std::cout << "Status is true";
+          this->show_status = true;
        }   
        else if( strncmp(argv[i], "-o", strlen("-o")) == 0 ) {   
           this->output_file = argv[++i];
@@ -34,6 +39,7 @@ bool Options::SetOptions(int argc, char *argv[]) {
           this->orf_rpkm_file = argv[++i];
        }
        else if( (strncmp(argv[i], "-m", strlen("-m")) == 0 ) || ( strncmp(argv[i], "--multireads", strlen("--multireads")) == 0) ) {   
+     //     std::cout << "Multireads is true";
           this->multi_reads = true;
        }
        else if( (strncmp(argv[i], "-f", strlen("-f")) == 0 ) || ( strncmp(argv[i], "--format", strlen("--format")) == 0) ) {   
@@ -50,7 +56,7 @@ bool Options::SetOptions(int argc, char *argv[]) {
        else if( (strncmp(argv[i], "-p", strlen("-p")) == 0 ) || ( strncmp(argv[i], "--pathways", strlen("--pathways")) == 0) ) {   
           this->pathways_table = argv[++i];
        }
-    }
+    } //for loop for arguments processing
 
     if( this->contigs_file.size()==0) {
        std::cout << "ERROR: There must be a contigs file" << std::endl;
@@ -67,10 +73,12 @@ bool Options::SetOptions(int argc, char *argv[]) {
        return false;
     }
 
+/*
     if( this->output_file.size()==0) {
        std::cout << "ERROR: There must be a output file prefix" << std::endl;
        return false;
     }
+*/
     return true;
     
 };

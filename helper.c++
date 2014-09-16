@@ -60,9 +60,7 @@ unsigned long create_contigs_dictionary(std::string contigs_file,  std::map<std:
 
 
 RUN_STATS  detect_multireads_blastoutput(const std::string &blastoutput_file, const std::string &format,\
-     vector<MATCH> &all_reads, map<std::string, unsigned long> &multireads) {
-
-    
+     vector<MATCH> &all_reads, map<std::string, unsigned long> &multireads, bool show_status) {
 
     MatchOutputParser *parser = ParserFactory::createParser(blastoutput_file, format);
     if( parser ==0 ) {
@@ -76,7 +74,8 @@ RUN_STATS  detect_multireads_blastoutput(const std::string &blastoutput_file, co
    // map<std::string, std::pair<bool, bool > > reads_dict;
  //   map<std::string, std::pair<unsigned int, unsigned int > > multi_reads_dict;
 
-    std::cout << std::endl << "Number of reads processed : " ;
+   
+    if( show_status) std::cout << std::endl << "Number of reads processed : " ;
 
     RUN_STATS stats;
 
@@ -114,12 +113,19 @@ RUN_STATS  detect_multireads_blastoutput(const std::string &blastoutput_file, co
        }
 
        // store it to process later by looking up the dictionary
-       all_reads.push_back(match);
 
-       if(i%10000==0) {
+       try {
+          all_reads.push_back(match);
+       }
+       catch(...) {
+          cout << "failing " << match.query << "   " << all_reads.size() <<  endl;
+       }
+
+       if( show_status && i%10000==0) {
            std::cout << "\n\033[F\033[J";
            std::cout << i ;
        }
+
        //std::cout << match.query << "   " << match.subject <<  " "  << match.start << " " << match.end << std::endl;
     }
 
@@ -159,8 +165,11 @@ RUN_STATS  detect_multireads_blastoutput(const std::string &blastoutput_file, co
 }
 
 
-void  process_blastoutput(const std::string & reads_map_file, std::map<string, CONTIG> &contigs_dictionary,\
-      const std::string &reads_map_file_format, std::vector<MATCH> &all_reads,   std::map<string, unsigned long> & multireads) {
+void  process_blastoutput(const std::string & reads_map_file, std::map<string,\
+                           CONTIG> &contigs_dictionary,\
+                            const std::string &reads_map_file_format,\
+                           std::vector<MATCH> &all_reads,\
+                            std::map<string, unsigned long> & multireads, bool show_status) {
 
     MATCH  match;
     std::map<string, bool> read_map;
@@ -178,13 +187,14 @@ void  process_blastoutput(const std::string & reads_map_file, std::map<string, C
 */
     
     int i =0;
-    std::cout << "Number of hits processed : " ;
+    
+    if( show_status ) std::cout << "Number of hits processed : " ;
     // iteratre through individual hits/alignments 
     for(vector<MATCH>::iterator it=all_reads.begin();  it!= all_reads.end(); it++ )  {
 
        if( i >=_MAX ) break;
 
-       if(i%10000==0) {
+       if(show_status && i%10000==0) {
            std::cout << "\n\033[F\033[J";
            std::cout << i ;
        }
@@ -259,7 +269,7 @@ void substring_coverage(std::map<string, CONTIG> &contigs_dictionary, const std:
 
 unsigned long ORFWise_coverage( map<string, CONTIG> &contigs_dictionary, const string &orf_file,\
                                map<string, float> &orfnames, unsigned long genome_length,\
-                               unsigned long &orf_length,  unsigned long num_mappable_reads) {
+                               unsigned long &orf_length,  unsigned long num_mappable_reads, bool show_status) {
 
     MATCH  match;
     COVERAGE coverage;
@@ -273,7 +283,7 @@ unsigned long ORFWise_coverage( map<string, CONTIG> &contigs_dictionary, const s
 
     for(int i =0; ; i++ )  {
        if( !parser->nextline(match) )  break;
-       if(i%10000==0) {
+       if(show_status && i%10000==0) {
            std::cout << "\n\033[F\033[J";
            std::cout << i ;
        }
@@ -305,6 +315,8 @@ unsigned long ORFWise_coverage( map<string, CONTIG> &contigs_dictionary, const s
 
      return _num_orfs;
 }
+
+
 
 void add_RPKM_value_to_pathway_table(const string &pathways_table_filename, const string &output_file, map<string, float> &orfnames) {
     char buf[1000000];
