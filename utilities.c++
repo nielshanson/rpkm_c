@@ -4,39 +4,52 @@
 
 
 void Options::print_usage(char *arg) {
-   std::cout << "USAGE : " << arg\
-             << "-c/--contigs contigs_file --r1/--reads-map1 reads_ma  p_file "\
-             << "--r/--reads-map (Only required for paired-end sam files) reads_map_file "\
-             << "-O/--ORF  orf_file_gff -p/--pathways pathways_table -f/--format format [default: blastout] "\
-             << "--ORF-RPKM  orf_rpkm_file [default: None] "\
-             << "--stats stats_file   [ -o outputfile ]"\
+   std::cout << "USAGE : "   << arg\
+             << "      : -h [ for help ]\n"\
+             << "      : --c <contigs_file>  [REQUIRED]\n"\
+             << "      : --r  <read_map_file_sam> \n"\
+             << "      : --ORFS  <orf_file_gff> [REQUIRED]\n"
+             << "      : --ORF-RPKM  <orf_rpkm_file> [default: None]\n"\
+             << "      : --stats stats_file [OPTIONAL]\n"\
+             << "      : --o <outputfile> \n"\
+             << "      : --m <multireads>  [OPTIONAL , default on]\n"\
+             << "      : --status [shows status]"\
              << std::endl;
 }
 
 bool Options::SetOptions(int argc, char *argv[]) { 
    for(int i = 1; i < argc ; i++) {   
-       if( strncmp(argv[i], "-c", strlen("-c")) == 0 ) {   
+       if( strncmp(argv[i], "--c", strlen("--c")) == 0 ) {   
           this->contigs_file = argv[++i];
        }   
-       if( strncmp(argv[i], "--stats", strlen("-stats")) == 0 ) {   
+       else if( strncmp(argv[i], "-h", strlen("-h")) == 0 ) {   
+          print_usage(argv[0]);
+          exit(0);
+       }   
+       else if( strncmp(argv[i], "--stats", strlen("--stats")) == 0 ) {   
           this->stats_file = argv[++i];
        }   
        else if(strncmp(argv[i], "--r", strlen("--r")) == 0 ) {   
           this->read_map_files.push_back(string(argv[++i]));
        }   
-       else if( strncmp(argv[i], "-o", strlen("-o")) == 0 ) {   
+       else if(strncmp(argv[i], "--status", strlen("--status")) == 0 ) {   
+    //      std::cout << "Status is true";
+          this->show_status = true;
+       }   
+       else if( strncmp(argv[i], "--o", strlen("--o")) == 0 ) {   
           this->output_file = argv[++i];
        }
-       else if( strncmp(argv[i], "-O", strlen("-O")) == 0 ) {   
+       else if( strncmp(argv[i], "--ORFS", strlen("--ORFS")) == 0 ) {   
           this->orf_file = argv[++i];
        }
        else if( strncmp(argv[i], "--ORF-RPKM", strlen("--ORF-RPKM")) == 0 ) {   
           this->orf_rpkm_file = argv[++i];
        }
-       else if( (strncmp(argv[i], "-m", strlen("-m")) == 0 ) || ( strncmp(argv[i], "--multireads", strlen("--multireads")) == 0) ) {   
+       else if( strncmp(argv[i], "--m", strlen("--m")) == 0  ) {   
+     //     std::cout << "Multireads is true";
           this->multi_reads = true;
        }
-       else if( (strncmp(argv[i], "-f", strlen("-f")) == 0 ) || ( strncmp(argv[i], "--format", strlen("--format")) == 0) ) {   
+       else if( (strncmp(argv[i], "--f", strlen("--f")) == 0 ) || ( strncmp(argv[i], "--format", strlen("--format")) == 0) ) {   
           if( (strncmp(argv[i+1], "blastout", strlen("blastout")) == 0 ) ||\
               (strncmp(argv[i+1], "sam-1", strlen("sam-1")) == 0) ||\
               (strncmp(argv[i+1], "sam-2", strlen("sam-2")) == 0) ) {   
@@ -47,10 +60,10 @@ bool Options::SetOptions(int argc, char *argv[]) {
                return false;
           }
        }
-       else if( (strncmp(argv[i], "-p", strlen("-p")) == 0 ) || ( strncmp(argv[i], "--pathways", strlen("--pathways")) == 0) ) {   
+       else if( strncmp(argv[i], "--p", strlen("--p")) == 0  ) {   
           this->pathways_table = argv[++i];
        }
-    }
+    } //for loop for arguments processing
 
     if( this->contigs_file.size()==0) {
        std::cout << "ERROR: There must be a contigs file" << std::endl;
@@ -67,10 +80,12 @@ bool Options::SetOptions(int argc, char *argv[]) {
        return false;
     }
 
+/*
     if( this->output_file.size()==0) {
        std::cout << "ERROR: There must be a output file prefix" << std::endl;
        return false;
     }
+*/
     return true;
     
 };

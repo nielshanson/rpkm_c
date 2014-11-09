@@ -1,7 +1,7 @@
-CC = g++ -Wall -ggdb
+CC = g++ -Wall # -g
 #CC = g++ -pg
-CC = g++ -Wall
-CCFLAGS=
+#CC = g++ -Wall 
+CCFLAGS=  -m64
 
 
 PROG = rpkm
@@ -10,7 +10,7 @@ OBJECTS= $(SOURCES:.c++=.o)
 HEADERS= $(SOURCES:.c++=.h)
 
 %.o: %.c++   $(SOURCES) types.h
-	$(CC)  $< -c -o $@  
+	$(CC) $(CCFLAGS)  $< -c -o $@  
 
 all: $(PROG)
 

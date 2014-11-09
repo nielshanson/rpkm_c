@@ -129,21 +129,30 @@ GffFileParser::~GffFileParser() {
 bool GffFileParser::nextline(MATCH &match) {
      string line;
      string field8; 
-
      bool _success = false;
+     static int i = 0;
      
      while( std::getline(this->input, line ).good() ) {
          split(line, fields, this->buf, '\t');
+      //   std::cout << line << std::endl;
+        // std::cout << "size " << fields.size() << std::endl;
          if(fields.size() < 9)  continue;
-        // std::cout << fields[3] << " - " << fields[4] << " " << _success <<std::endl;
+         //std::cout << fields[3] << " - " << fields[4] << " " << _success <<std::endl;
          _success = true;
          break;
      }  
-    
+     i++;
+     
      if( _success )  {  
-        match.query = std::string(fields[0]); 
         match.start = atoi(fields[3]);
         match.end = atoi(fields[4]);
+        match.query = fields[0]; 
+
+/*        if(false &&  i%100 ==0  ) {
+           std::cout << "i= " <<  i << std::endl;
+           std::cout << "subject " <<  match.subject << std::endl;
+        }
+*/
         //respect the order before calling get_orf_name
         // because the same buffer is used
         field8 = std::string(fields[8]);

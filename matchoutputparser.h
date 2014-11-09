@@ -17,7 +17,7 @@ public:
       std::string filename;
       std::string format;
       std::ifstream input;
-      char buf[100000];
+      char buf[1000];
       vector<char *> tempv;
       virtual ~MatchOutputParser() = 0;
       vector<char *> fields;

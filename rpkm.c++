@@ -1,18 +1,18 @@
+#include <map>
+#include "types.h"
 #include "utilities.h"
 #include "helper.h"
-#include <map>
 
 
 bool compare_triplets(const TRIPLET &a, const TRIPLET &b) {
    return a.start < b.start ? true : false; 
 }
  
-
 int main( int argc, char **argv ){
     // parse options
     Options options;
-    if (argc < 9) { options.print_usage(argv[0]); exit(1); }
-    if ( options.SetOptions(argc, argv)==false) { options.print_usage(argv[0]); exit(1); }
+   // if (argc < 9) { options.print_usage(argv[0]); exit(1); }
+    if (options.SetOptions(argc, argv)==false) { options.print_usage(argv[0]); exit(0); }
 
     //options.print_options();
 
@@ -38,7 +38,7 @@ int main( int argc, char **argv ){
     }   
  
     vector<MATCH> all_reads;
-    all_reads.reserve(1000000);
+    all_reads.reserve(80000000);
     //unsigned long num_mappable_reads =0;
     // creating the read multiplicity counts if there is a single end read file 
     map<std::string, unsigned long> multireads;
@@ -49,31 +49,35 @@ int main( int argc, char **argv ){
     for( vector<string>::iterator it = options.read_map_files.begin() ; it != options.read_map_files.end(); it++)  { 
         if( it->size() == 0 ) continue;
         all_reads.clear();
-        std::cout << "\n\n" << "Searching for multireads from reads file " << *it << std::endl;
-        _stats = detect_multireads_blastoutput(*it, options.reads_map_file_format, all_reads, multireads);
+        if( options.show_status ) 
+          std::cout << "\n\n" << "Searching for multireads from reads file " << *it << std::endl;
+        _stats = detect_multireads_blastoutput(*it, options.reads_map_file_format, all_reads, multireads, options.show_status);
         
-        _stats.printStats(&std::cout);
+        if( options.show_status ) _stats.printStats(&std::cout);
+
         if(print_stats_file) {
             *output << "\nStats for file :  " << *it << std::endl;
             _stats.printStats(output);
         }
 
         stats = stats + _stats;
-        process_blastoutput(*it, contigs_dictionary, options.reads_map_file_format, all_reads,  multireads);
+        process_blastoutput(*it, contigs_dictionary, options.reads_map_file_format, all_reads,  multireads, options.show_status);
 //        std::cout << "Number of mappable reads " << all_reads.size() << std::endl;
     }
   
    
-    std::cout << "Composite stats for all files " << std::endl;
+    if( options.show_status ) 
+       std::cout << "Composite stats for all files " << std::endl;
 
     if( print_stats_file)
        *output << "\nComposite stats for all files " << std::endl;
  
-    stats.printStats(&std::cout);
+    if( options.show_status ) stats.printStats(&std::cout);
+
     if(print_stats_file) stats.printStats(output);
  
 
-    std::cout << "\n\nSorting  the read matches .....";
+    if( options.show_status ) std::cout << "\n\nSorting  the read matches .....";
     for(map<string, CONTIG>::iterator it = contigs_dictionary.begin(); it != contigs_dictionary.end(); it++) {
        std::sort(it->second.M.begin(), it->second.M.end(), compare_triplets);
     /*    for(TRIPLETS::iterator it1= it->second.M.begin(); it1 != it->second.M.end(); it1++) {
@@ -81,24 +85,31 @@ int main( int argc, char **argv ){
         }
 */
     }
-    std::cout << "done\n";
+//    std::cout << "done\n";
+
+
+
 
     unsigned long total_covered_length = 0;
     unsigned long total_contig_length = 0;
     COVERAGE coverage;
+    std::cout << "Computing coverage ...";
     for(map<string, CONTIG>::iterator it = contigs_dictionary.begin(); it != contigs_dictionary.end(); it++) {
-       substring_coverage(contigs_dictionary, it->first, 1, it->second.L, coverage);
-       
+       substring_coverage(contigs_dictionary, it->first, 1, it->second.L, coverage, 0);
        total_covered_length += coverage.coverage*contigs_dictionary[it->first].L;
        total_contig_length += contigs_dictionary[it->first].L;
        //std::cout << coverage.coverage << "  " << coverage.numreads << "  " << coverage.substring_length << "   " << coverage.uncovered_length << std::endl;
     }
+    std::cout << "done\n";
     
     map<string, float> _all_orfnames;
     float total_distinct_reads = static_cast<double>(stats.num_distinct_reads_mapped) + static_cast<double>(stats.num_distinct_reads_unmapped);
     unsigned long orf_length = 0;
+    std::cout << "Computing ORF coverage ...";
     unsigned long _num_orfs = ORFWise_coverage(contigs_dictionary, options.orf_file, _all_orfnames,\
                                genome_length,  orf_length, total_distinct_reads);
+    std::cout << "done\n";
+
  //   std::cout << "done computing orfwise coverage " << std::endl;
 
 /*
@@ -108,11 +119,11 @@ int main( int argc, char **argv ){
 
 */
 
-    
 
-
-    if( options.pathways_table.size() > 0 )
+#ifdef PATHWAY_TABLE
+    if( options.pathways_table.size() > 0 && options.output_file.size() > 0 )
         add_RPKM_value_to_pathway_table(options.pathways_table, options.output_file, _all_orfnames);
+#endif
     
 
    // average rpkm
