@@ -120,13 +120,10 @@ RUN_STATS  detect_multireads_blastoutput(const std::string &blastoutput_file, co
           cout << "failing " << match.query << "   " << all_reads.size() <<  endl;
        }
 
-       if( false &&  show_status && i%10000==0) {
+       if( show_status && i%10000==0) {
            std::cout << "\n\033[F\033[J";
            std::cout << i ;
        }
-
-       //if( i > 200000000) break;
-
        //std::cout << match.query << "   " << match.subject <<  " "  << match.start << " " << match.end << std::endl;
     }
 
@@ -194,7 +191,7 @@ void  process_blastoutput(const std::string & reads_map_file, std::map<string,\
 
        if( i >=_MAX ) break;
 
-       if(false && show_status && i%10000==0) {
+       if(show_status && i%10000==0) {
            std::cout << "\n\033[F\033[J";
            std::cout << i ;
        }
@@ -348,7 +345,7 @@ unsigned long ORFWise_coverage( map<string, CONTIG> &contigs_dictionary, const s
     std::cout << "Sorting through the reads...." ;
     for(int i =0; ; i++ )  {
        if( !parser->nextline(match) )  break;
-       if(false && show_status && i%10000==0) {
+       if(show_status && i%10000==0) {
            std::cout << "\n\033[F\033[J";
        }
 
